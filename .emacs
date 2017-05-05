@@ -21,9 +21,12 @@
 
 (add-hook 'after-init-hook 'neotree-show)
 
+;; Movement
 (global-set-key (kbd "M-o") 'ace-window)
 (global-set-key (kbd "C-x C-o") 'next-multiframe-window)
+(global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
 
+;; Swap regexp and normal replace
 (global-set-key (kbd "M-%") 'query-replace-regexp)
 (global-set-key (kbd "C-M-%") 'query-replace)
 
@@ -101,6 +104,17 @@
 ;; Insert is stupid
 (global-set-key (kbd "<insertchar>") 'end-of-line)
 ;(global-set-key (kbd "C-<insertchar>") 'overwrite-mode)
+
+;; Key chord
+;(key-chord-mode 1)
+(defun my-key-chord-fun ()
+ ;(interactive) ; I'm not sure what this does but it works w/o it so Occam's razor
+  (key-chord-mode 1)
+  ;; You got lucky this time...
+  ;; But figure out hooks and calling functions with parameters
+  (key-chord-define-global "[]" "[]\C-b")
+  (key-chord-define-global "{}" "{}\C-b"))
+(add-hook 'after-init-hook 'my-key-chord-fun)
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

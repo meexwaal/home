@@ -19,7 +19,6 @@ export PATH=$PATH:$HOME/bin
 export CPPFLAGS="-Wall -Wextra -Wshadow -Werror -std=c++14 -pedantic -g"
 export CFLAGS="-Wall -Wextra -Wshadow -Werror -std=c11 -pedantic -g"
 alias gst="git status"
-export TERM=xterm-256color
 
 # My additions
 export PS1="[%{%F{red}%B%}%n%{%f%b%}]: "
@@ -29,6 +28,11 @@ bindkey '^W' kill-region
 alias ls="ls --color=auto"
 export WORDCHARS="*?.[]~=&;!#$%^(){}<>" # Chars that are treated as words
 eval $(dircolors -b $HOME/.dircolors) # https://github.com/trapd00r/LS_COLORS
+if [[ ! -o login ]] ; then
+    export TERM=xterm-256color
+else
+    export TERM=xterm          # This makes control+arrows work better
+fi
 
 # check out
 #https://github.com/zsh-users/zsh-syntax-highlighting

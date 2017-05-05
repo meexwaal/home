@@ -1,0 +1,17 @@
+control keycode 105 = F100 # left
+string F100 = "\033[1;5D"
+control keycode 106 = F101 # right
+string F101 = "\033[1;5C"
+control keycode 103 = F102 # up
+string F102 = "\033[1;5A"
+control keycode 108 = F103 # down
+string F103 = "\033[1;5B"
+
+shift keycode 105 = F104 # left
+string F104 = "\033[1;2D"
+shift keycode 106 = F105 # right
+string F105 = "\033[1;2C"
+shift keycode 103 = F106 # up
+string F106 = "\033[1;2A"
+shift keycode 108 = F107 # down
+string F107 = "\033[1;2B"
