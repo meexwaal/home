@@ -3,6 +3,7 @@
 
 # Just like don't have most of this
 AvalonRoles
+.bash_history
 .bash_logout
 .bdcalc_history
 bin
