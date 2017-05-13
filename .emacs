@@ -1,4 +1,26 @@
 (require 'package)
+;; My packages:
+;; ace-window
+;; async
+;; auctex
+;; avy
+;; browse-kill-ring
+;; company
+;; company-statistics
+;; dash
+;; fill-column-indicator
+;; git-commit
+;; json-mode
+;; json-reformat
+;; json-snatcher
+;; key-chord
+;; magit
+;; magit-popup
+;; neotree
+;; undo-tree
+;; web-mode
+;; with-editor
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
