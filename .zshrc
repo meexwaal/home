@@ -25,8 +25,9 @@ export PS1="[%{%F{red}%B%}%n%{%f%b%}]: "
 bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
 bindkey '^W' kill-region
-alias ls="ls --color=auto"
-export WORDCHARS="*?.[]~=&;!#$%^(){}<>" # Chars that are treated as words
+alias ls='ls --color=auto --hide="*~"'
+alias la="ls -a"
+export WORDCHARS="*?[]~&;!#$%^(){}<>" # Chars that are treated as words
 eval $(dircolors -b $HOME/.dircolors) # https://github.com/trapd00r/LS_COLORS
 if [[ ! -o login ]] ; then
     export TERM=xterm-256color
