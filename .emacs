@@ -1,3 +1,10 @@
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (require 'package)
 ;; My packages:
 ;; ace-window
@@ -10,6 +17,7 @@
 ;; dash
 ;; fill-column-indicator
 ;; git-commit
+;; jdee
 ;; json-mode
 ;; json-reformat
 ;; json-snatcher
@@ -33,20 +41,65 @@
  '(custom-enabled-themes (quote (tsdh-dark)))
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
+ '(jdee-global-classpath (quote ("." "out" "$CLASSPATH")))
+ '(jdee-key-bindings
+   (quote
+    (("[? ? ?]" . jdee-run-menu-run-applet)
+     ("[? ? ?]" . jdee-build)
+     ("[? ? ?]" . jdee-compile)
+     ("[? ? ?]" . jdee-test-unittest)
+     ("[? ? ?]" . jdee-debug)
+     ("[? ? ?]" . jdee-find)
+     ("[? ? ?]" . jdee-open-class-at-point)
+     ("[? ? ?*]" . jdee-parse-fqn-to-kill-ring)
+     ("[? ? ?#]" . jdee-stacktrace-buffer)
+     ("[? ? ?w]" . jdee-archive-which)
+     ("[? ? ?]" . jdee-backend-run)
+     ("[? ? ?]" . jdee-gen-println)
+     ("[? ? ?]" . jdee-help-browse-jdk-doc)
+     ("[? ? ?]" . jdee-save-project)
+     ("[? ? ?]" . jdee-project-update-class-list)
+     ("[? ? ?]" . jdee-run)
+     ("[? ? ?]" . speedbar-frame-mode)
+     ("[? ? ?]" . jdee-jdb-menu-debug-applet)
+     ("[? ? ?]" . jdee-help-symbol)
+     ("[? ? ?]" . jdee-show-superclass-source)
+     ("[? ? ?]" . jdee-open-class-at-point)
+     ("[? ? ?]" . jdee-import-find-and-import)
+     ("[? ? ?e]" . jdee-wiz-extend-abstract-class)
+     ("[? ? ?f]" . jdee-gen-try-finally-wrapper)
+     ("[? ? ?i]" . jdee-wiz-implement-interface)
+     ("[? ? ?j]" . jdee-javadoc-autodoc-at-line)
+     ("[? ? ?o]" . jdee-wiz-override-method)
+     ("[? ? ?t]" . jdee-gen-try-catch-wrapper)
+     ("[? ? ?z]" . jdee-import-all)
+     ("[? ? ?]" . jdee-run-etrace-prev)
+     ("[? ? ?]" . jdee-run-etrace-next)
+     ("[(control c) (control v) (control ?.)]" . jdee-complete)
+     ("[(control c) (control v) ?.]" . jdee-complete-menu))))
+ '(jdee-run-applet-viewer "appletviewer")
+ '(jdee-server-dir "~/.myJars")
  '(lpr-page-header-program "pr")
  '(package-archives
    (quote
     (("gnu" . "http://elpa.gnu.org/packages/")
-     ("melpa-stable" . "http://stable.melpa.org/packages/")))))
+     ("melpa" . "http://melpa.org/packages/"))))
+ '(package-selected-packages
+   (quote
+    (nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
+
 (column-number-mode)
 (show-paren-mode)
 
+;; Neotree
 (add-hook 'after-init-hook 'neotree-show)
+(setq neo-autorefresh nil) ; (autorefresh breaks things right now)
 
 ;; Movement
-(global-set-key (kbd "M-o") 'ace-window)
-(global-set-key (kbd "C-x C-o") 'next-multiframe-window)
+(global-set-key (kbd "C-o") 'ace-window)
+(global-set-key (kbd "M-o") 'next-multiframe-window)
 (global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
+(global-set-key (kbd "M-g") 'goto-line)
 
 ;; Swap regexp and normal replace
 (global-set-key (kbd "M-%") 'query-replace-regexp)
@@ -91,6 +144,7 @@
 
 ;; Undo tree
 (add-hook 'after-init-hook 'global-undo-tree-mode)
+(global-set-key (kbd "M-l") 'undo-tree-redo) ; C-? would be great
 
 ;; Make '_' a character
 (defun make-underscore-character ()
@@ -125,18 +179,28 @@
 
 ;; Insert is stupid
 (global-set-key (kbd "<insertchar>") 'end-of-line)
-;(global-set-key (kbd "C-<insertchar>") 'overwrite-mode)
+;; (global-set-key (kbd "C-<insertchar>") 'overwrite-mode)
+
+;; Comment out a line
+(global-set-key (kbd "M-'") 'comment-line)
+
+;; Line numbers
+(global-linum-mode t)
 
 ;; Key chord
-;(key-chord-mode 1)
 (defun my-key-chord-fun ()
  ;(interactive) ; I'm not sure what this does but it works w/o it so Occam's razor
   (key-chord-mode 1)
   ;; You got lucky this time...
   ;; But figure out hooks and calling functions with parameters
-  (key-chord-define-global "[]" "[]\C-b")
-  (key-chord-define-global "{}" "{}\C-b"))
-(add-hook 'after-init-hook 'my-key-chord-fun)
+  ;; (key-chord-define-global "[]" "[]\C-b")
+  ;; (key-chord-define-global "{}" "{}\C-b")
+  )
+;(add-hook 'after-init-hook 'my-key-chord-fun)
+
+;; Java
+;; Set the basic indentation for Java source files to two spaces.
+(add-hook 'jdee-mode-hook '(lambda () (setq c-basic-offset 2)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

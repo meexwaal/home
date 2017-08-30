@@ -1,9 +1,1 @@
-# Whitelist
-*
-!.XCompose
-!.bashrc
-!.dircolors
-!.emacs
-!.funcskeys
-!.gitignore
-!.zshrc
+*~
