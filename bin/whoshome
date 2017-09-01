@@ -1,0 +1,16 @@
+#!/bin/bash
+
+who=`who -s`
+online=""
+for name in `cat friends`
+do
+    if [[ $who =~ (^|[[:space:]])"$name"($|[[:space:]]) ]]
+    then
+        online=$online"$name "
+    fi
+done
+
+if [[ $online ]]
+then
+    echo "Online: $online"
+fi
