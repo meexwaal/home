@@ -9,7 +9,8 @@ export CFLAGS="-Wall -Wextra -Wshadow -Werror -std=c11 -pedantic -g"
 alias gst="git status"
 
 # My additions
-export PS1="[%{%F{red}%B%}%n%{%f%b%}]: "
+export PS1=" %{%F{red}%B%}%n%{%f%b%} | "  # " max | "
+#export PS1="[%{%F{red}%B%}%n%{%f%b%}]: " # "[max]: "
 bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
 bindkey '^W' kill-region
