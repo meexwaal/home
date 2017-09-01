@@ -46,3 +46,6 @@ alias nixtest="sudo nixos-rebuild test"
 #https://github.com/zsh-users/zsh-syntax-highlighting
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/nix/var/nix/profiles/system/sw/lib
+
+function mkcd(){mkdir $1; cd $1}
+alias ..="cd .."

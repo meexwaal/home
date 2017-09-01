@@ -166,7 +166,7 @@
   (switch-to-buffer (file-name-nondirectory *dvi*))
   (find-alternate-file *dvi*))
 (eval-after-load 'LaTeX-mode
-  (global-set-key (kbd "C-;") 'compile-latex))
+  (global-set-key (kbd "C-c C-j") 'compile-latex))
 
 ;; ido-mode is neat
 (ido-mode 1)
