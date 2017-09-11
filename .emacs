@@ -86,7 +86,7 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
+    (nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
 
 (column-number-mode)
 (show-paren-mode)

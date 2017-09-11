@@ -1,6 +1,6 @@
 alias msj="ssh msjohnso@unix.andrew.cmu.edu"
 alias ccmsj="ssh msjohnso@unix.club.cc.cmu.edu"
-alias ece="ssh msjohnso@ece023.campus.ece.cmu.local"
+alias ece="ssh msjohnso@ece023.campus.ece.cmu.local -t zsh"
 alias edit="emacs -nw"
 export EDITOR="emacs -nw"
 
@@ -38,5 +38,9 @@ alias nixtest="sudo nixos-rebuild test"
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/nix/var/nix/profiles/system/sw/lib
 
-function mkcd(){mkdir $1; cd $1}
+function mkcd(){
+  if mkdir $1; then
+    cd $1
+  fi
+}
 alias ..="cd .."
