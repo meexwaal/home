@@ -122,6 +122,7 @@
 <Multi_key> <space> <0> : "​" # Zero width space
 <Multi_key> <bar> <space> : " " # Hair space
 <Multi_key> <space> <bar> : " " # Hair space
+<Multi_key> <plus> <o> : "⊕" # Hair space
 
 # Part 1 - Manual definitions
 
@@ -1426,9 +1427,9 @@
 <Multi_key> <slash> <I>          	: "Ɨ"   U0197 # LATIN CAPITAL LETTER I WITH STROKE
 <Multi_key> <KP_Divide> <I>      	: "Ɨ"   U0197 # LATIN CAPITAL LETTER I WITH STROKE
 <dead_horn> <O>                  	: "Ơ"   U01A0 # LATIN CAPITAL LETTER O WITH HORN
-<Multi_key> <plus> <O>           	: "Ơ"   U01A0 # LATIN CAPITAL LETTER O WITH HORN
+# <Multi_key> <plus> <O>           	: "Ơ"   U01A0 # LATIN CAPITAL LETTER O WITH HORN
 <dead_horn> <o>                  	: "ơ"   U01A1 # LATIN SMALL LETTER O WITH HORN
-<Multi_key> <plus> <o>           	: "ơ"   U01A1 # LATIN SMALL LETTER O WITH HORN
+# <Multi_key> <plus> <o>           	: "ơ"   U01A1 # LATIN SMALL LETTER O WITH HORN
 <dead_horn> <U>                  	: "Ư"   U01AF # LATIN CAPITAL LETTER U WITH HORN
 <Multi_key> <plus> <U>           	: "Ư"   U01AF # LATIN CAPITAL LETTER U WITH HORN
 <dead_horn> <u>                  	: "ư"   U01B0 # LATIN SMALL LETTER U WITH HORN

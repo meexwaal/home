@@ -1,6 +1,6 @@
-alias msj="ssh msjohnso@unix.andrew.cmu.edu"
-alias ccmsj="ssh msjohnso@unix.club.cc.cmu.edu"
-alias ece="ssh msjohnso@ece023.campus.ece.cmu.local -t zsh"
+alias msj="ssh andrew"
+alias ccmsj="ssh cclub"
+alias ece="ssh ece"
 alias edit="emacs -nw"
 export EDITOR="emacs -nw"
 

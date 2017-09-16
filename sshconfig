@@ -1,0 +1,11 @@
+Host andrew
+     HostName unix.andrew.cmu.edu
+     User msjohnso
+
+Host ece
+     HostName ece023.campus.ece.cmu.local
+     User msjohnso
+
+Host cclub
+     HostName unix.club.cc.cmu.edu
+     User msjohnso
