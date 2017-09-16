@@ -86,7 +86,7 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
+    (jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
 
 (column-number-mode)
 (show-paren-mode)
@@ -197,6 +197,10 @@
   ;; (key-chord-define-global "{}" "{}\C-b")
   )
 ;(add-hook 'after-init-hook 'my-key-chord-fun)
+
+;; jump-char
+(global-set-key (kbd "C-f") 'jump-char-forward)
+(global-set-key (kbd "C-b") 'jump-char-backward)
 
 ;; Java
 ;; Set the basic indentation for Java source files to two spaces.
