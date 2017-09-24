@@ -44,3 +44,7 @@ function mkcd(){
   fi
 }
 alias ..="cd .."
+
+setopt histignorespace
+alias ls=" ls"
+alias fg=" fg"
