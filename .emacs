@@ -88,8 +88,24 @@
    (quote
     (jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
 
+;; Load packages
+(add-to-list 'load-path "~/home/lisp/")
+
+;; Verilog mode
+(autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
+(add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\'" . verilog-mode))
+
+;; Load templates
+(auto-insert-mode)
+(setq auto-insert-query nil)
+(setq auto-insert-directory "~/home/templates/")
+(define-auto-insert "\.sv" "template.sv")
+
+;; Nice things
 (column-number-mode)
 (show-paren-mode)
+
+(setq tramp-default-method "ssh")
 
 ;; Neotree
 (add-hook 'after-init-hook 'neotree-show)
@@ -100,6 +116,40 @@
 (global-set-key (kbd "M-o") 'next-multiframe-window)
 (global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
 (global-set-key (kbd "M-g") 'goto-line)
+(global-set-key (kbd "C-g") 'goto-line)
+
+;; Smart backspace
+;; Inspired by https://stackoverflow.com/a/28227677
+;; space = [:space:]
+;; word = [:alnum:]
+;; semiword = [^[:space:][:alnum:]]
+;; Desired bevahior:
+;;   Start of line -> one backspace or maybe delete all preceding empty lines
+;;   Only whitespace between start of line and point -> delete to start
+;;   word, 0-2 semiword, 0-2 spaces, 0-1 semiwords -> delete to start of word
+;;   (space or start), semiword (where it doesn't conflict with above) OR
+;;   3+ semiword, 0-2 spaces -> delete to start of semiword
+;;   3+ spaces after non-space -> delete space chars
+
+(defun my-delete-back ()
+  (interactive)
+  (if (bolp)  ; beginnning of line, just delete 1
+      (backward-delete-char 1) ;; This is separate from the case below
+                               ;; in case you want to change it later
+    (if (string-match "^[[:space:]]*$"
+                      (buffer-substring (point-at-bol) (point)))
+        (delete-region (point-at-bol) (point))
+      (if (string-match "[[:alnum:]]+[^[:space:][:alnum:]]\\{0,2\\}[[:space:]]\\{0,2\\}[^[:space:][:alnum:]]?$"
+                        (buffer-substring (point-at-bol) (point)))
+          (delete-region (+ (match-beginning 0) (point-at-bol)) (point))
+        (if (string-match "\\(^\\|[[:space:]]\\|[^[:space:][:alnum:]]\\{2\\}\\)[^[:space:][:alnum:]]+[[:space:]]\\{0,2\\}$" ;ew
+                          (buffer-substring (point-at-bol) (point)))
+            (delete-region (+ 1 (match-beginning 0) (point-at-bol)) (point))
+          (replace-regexp "[[:space:]]*$" "" nil (point-at-bol) (point))
+          )))))
+
+(global-set-key (kbd "M-DEL") 'my-delete-back)
+(global-set-key (kbd "C-DEL") 'my-delete-back) ;; This maybe doesn't work
 
 ;; Swap regexp and normal replace
 (global-set-key (kbd "M-%") 'query-replace-regexp)

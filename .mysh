@@ -8,7 +8,7 @@ alias ece="ssh ece"
 alias edit="emacs -nw"
 export EDITOR="emacs -nw"
 
-export PATH=$PATH:$HOME/bin:$HOME/home/bin
+export PATH=$PATH:$HOME/bin:$HOME/home/bin:$HOME/.local/bin
 export CPPFLAGS="-Wall -Wextra -Wshadow -Werror -std=c++14 -pedantic -g"
 export CFLAGS="-Wall -Wextra -Wshadow -Werror -std=c11 -pedantic -g"
 
@@ -51,6 +51,10 @@ else
     bindkey '^[[1;5D' backward-word
     bindkey '^W' kill-region
     bindkey '^[[3;5~' kill-word
+    # fg binding - runs a widget that runs fg?
+    fg_widget() fg
+    zle -N fg_widget
+    bindkey '^Z' fg_widget
 
     # Make pretty colors
     export TERM=xterm-256color
