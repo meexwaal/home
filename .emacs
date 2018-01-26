@@ -7,6 +7,7 @@
 
 (require 'package)
 ;; My packages:
+;; 0xc
 ;; ace-window
 ;; async
 ;; auctex
@@ -105,7 +106,14 @@
 (column-number-mode)
 (show-paren-mode)
 
+;; Tramp and remote access
 (setq tramp-default-method "ssh")
+(defun 213-remote ()
+  (interactive)
+  (find-file "/ssh:shark:private/213"))
+(defun andrew-remote ()
+  (interactive)
+  (find-file "/ssh:andrew:private"))
 
 ;; Neotree
 (add-hook 'after-init-hook 'neotree-show)
@@ -116,7 +124,6 @@
 (global-set-key (kbd "M-o") 'next-multiframe-window)
 (global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
 (global-set-key (kbd "M-g") 'goto-line)
-(global-set-key (kbd "C-g") 'goto-line)
 
 ;; Smart backspace
 ;; Inspired by https://stackoverflow.com/a/28227677

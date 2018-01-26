@@ -5,6 +5,7 @@ alias msj="ssh andrew"
 alias ccmsj="ssh cclub"
 alias ece="ssh ece"
 
+alias e="emacs -nw"
 alias edit="emacs -nw"
 export EDITOR="emacs -nw"
 

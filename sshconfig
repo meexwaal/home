@@ -9,3 +9,7 @@ Host ece
 Host cclub
      HostName unix.club.cc.cmu.edu
      User msjohnso
+
+Host shark
+     HostName shark.ics.cs.cmu.edu
+     User msjohnso
