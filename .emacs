@@ -94,10 +94,39 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window))))
+    (jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+ '(term-bind-key-alist
+   (quote
+    (("C-c C-c" . term-interrupt-subjob)
+     ("C-c C-e" . term-send-esc)
+     ("C-p" . previous-line)
+     ("C-n" . next-line)
+     ("C-s" . isearch-forward)
+     ("M-r" . isearch-backward)
+     ("C-m" . term-send-return)
+     ("C-y" . term-paste)
+     ("M-f" . term-send-forward-word)
+     ("M-b" . term-send-backward-word)
+     ("M-p" . term-send-up)
+     ("M-n" . term-send-down)
+     ("M-M" . term-send-forward-kill-word)
+     ("M-N" . term-send-backward-kill-word)
+     ("C-h" . term-send-backward-kill-word)
+     ("M-DEL" . term-send-backward-kill-word)
+     ("<C-left>" . term-send-backward-word)
+     ("<C-right>" . term-send-forward-word)
+     ("M-d" . term-send-delete-word)
+     ("M-," . term-send-raw)
+     ;("M-." . comint-dynamic-complete)
+     )))
+ '(vc-follow-symlinks t))
 
 ;; Load packages
 (add-to-list 'load-path "~/home/lisp/")
+(add-to-list 'load-path "~/home/lisp/sml-mode")
+(require 'multi-term-ext) ; Maybe a little sketch, but el-doc seems overkill
+(autoload 'sml-mode "sml-mode" "Major mode for editing SML." t)
+(autoload 'run-sml "sml-proc" "Run an inferior SML process." t)
 
 ;; Verilog mode
 (autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
@@ -108,6 +137,28 @@
 (setq auto-insert-query nil)
 (setq auto-insert-directory "~/home/templates/")
 (define-auto-insert "\.sv" "template.sv")
+
+;; SML stuff - copied from 15150
+;; this points to where SML happens to live on local
+(setq sml-program-name "/usr/bin/sml")
+
+(add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\)\\'" . sml-mode))
+
+(defun my-sml-mode-hook () "Local defaults for SML mode"
+  (setq sml-indent-level 2)             ; conserve on horizontal space
+  (setq words-include-escape t)         ; \ loses word break status
+;  (setq-default tab-width 2)
+;  (setq indent-line-function 'insert-tab)
+  (defun indent-and-newline ()
+    (interactive)
+    (indent-according-to-mode)
+    (newline))
+;  (local-set-key (kbd "RET") 'reindent-then-newline-and-indent)
+  (local-set-key (kbd "RET") 'indent-and-newline)
+)
+;  (setq indent-tabs-mode nil))          ; never ever indent with tabs
+(add-hook 'sml-mode-hook 'my-sml-mode-hook)
+
 
 ;; Irony mode config
 (add-hook 'c++-mode-hook 'irony-mode)
@@ -121,7 +172,6 @@
 ;(add-hook 'c++-mode-hook 'company-mode)
 ;(add-hook 'c-mode-hook 'company-mode)
 (with-eval-after-load 'company
-  (add-to-list 'company-backends 'company-irony)
   (setq company-idle-delay nil)                  ; Don't autocomplete
   (global-set-key (kbd "M-.") 'company-complete) ; Complete when key pressed
   (setq company-show-numbers t)                  ; Number suggestions
@@ -144,14 +194,21 @@
 ;; Syntax checking
 (add-hook 'c++-mode-hook 'flycheck-mode)
 (add-hook 'c-mode-hook 'flycheck-mode)
+(setq flycheck-python-pylint-executable "pylint3") ; Use pylint3
+(add-hook 'python-mode-hook 'flycheck-mode)
 (with-eval-after-load 'flycheck
-  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
-  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq flycheck-display-errors-delay 0.1) ; Small delay (plays better with eldoc)
+  (setq flycheck-check-syntax-automatically '(mode-enabled save)) ; Only show on save
   )
 
 ;; Displaying the arguments of a function (ELDoc)
 (add-hook 'irony-mode-hook 'irony-eldoc)
-
+(add-hook 'irony-mode-hook 'irony-eldoc)
+(add-hook 'python-mode-hook 'eldoc-mode)
+(add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+(with-eval-after-load 'eldoc
+  (setq eldoc-idle-delay 0) ; No delay
+  )
 ;; Yasnippet
 (add-hook 'company-mode-hook 'yas-minor-mode)
 
@@ -176,9 +233,33 @@
 ;(defun irony-mode-keys () "Modify keymaps used by `irony-mode'." (local-set-key (kbd "TAB") 'irony--indent-or-complete) (local-set-key [tab] 'irony--indent-or-complete))
 ;(add-hook 'c-mode-common-hook 'irony-mode-keys)
 
+;; Setup for relevant modes
+(defcustom python-shell-interpreter "python3"
+    "Default Python interpreter for shell."
+    :type 'string
+    :group 'python)
+(defun my-python-mode-backend-hook ()
+  (add-to-list 'company-backends 'company-jedi)
+  (run-python (python-shell-parse-command)) ;; eldoc needs this, but it's a bug
+  )
+(add-hook 'python-mode-hook 'my-python-mode-backend-hook)
+
+(defun my-c-mode-backend-hook ()
+  (add-to-list 'company-backends 'company-irony)
+  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+(add-hook 'c-mode-hook 'my-c-mode-backend-hook)
+(add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
+
 ;; Nice things
 (column-number-mode)
 (show-paren-mode)
+
+;; Ask y-or-n instead of yes-or-no
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; Disable asking yes-or-no for certain functions
+(defadvice revert-buffer (around auto-confirm compile activate)
+  (flet ((yes-or-no-p (&rest args) t) (y-or-n-p (&rest args) t)) ad-do-it))
 
 ;; Tramp and remote access
 (setq tramp-default-method "ssh")
@@ -190,8 +271,8 @@
   (find-file "/ssh:andrew:private"))
 
 ;; Neotree
-(add-hook 'after-init-hook 'neotree-show)
-(setq neo-autorefresh nil) ; (autorefresh breaks things right now)
+;(add-hook 'after-init-hook 'neotree-show) ; Show on startup
+;(setq neo-autorefresh nil) ; (autorefresh breaks things in some version)
 (global-set-key (kbd "<f9>") 'neotree-toggle)
 
 ;; Movement
@@ -227,10 +308,11 @@
                           (buffer-substring (point-at-bol) (point)))
             (delete-region (+ 1 (match-beginning 0) (point-at-bol)) (point))
           (replace-regexp "[[:space:]]*$" "" nil (point-at-bol) (point))
-          )))))
+          ))))) ;; TODO: apparently replace-regexp is not the way to go
 
 (global-set-key (kbd "M-DEL") 'my-delete-back)
-(global-set-key (kbd "C-DEL") 'my-delete-back) ;; This maybe doesn't work
+(global-set-key (kbd "C-h") 'my-delete-back) ; C-h = C-backspace
+(global-set-key (kbd "M-h") 'kill-word)
 
 ;; Disable all minor modes for quicker pasting
 (defun paste-disable-active-minor-modes ()
@@ -285,8 +367,8 @@
   (scroll-down 1)
 ;  (previous-line)
   )
-(global-set-key (kbd "M-<up>") 'my-scroll-up)
-(global-set-key (kbd "M-<down>") 'my-scroll-down)
+(global-set-key (kbd "M-<down>") 'my-scroll-up)
+(global-set-key (kbd "M-<up>") 'my-scroll-down)
 
 
 ;; Webmode coloring
@@ -329,7 +411,13 @@
   (switch-to-buffer (file-name-nondirectory *dvi*))
   (find-alternate-file *dvi*))
 (eval-after-load 'LaTeX-mode
-  (global-set-key (kbd "C-c C-j") 'compile-latex))
+  (local-set-key (kbd "C-c C-j") 'compile-latex))
+
+;; Rust setup
+(defun my-rust-config ()
+  (local-set-key (kbd "C-c C-v") 'rust-compile))
+(add-hook 'rust-mode-hook 'my-rust-config)
+
 
 ;; ido-mode is neat
 (ido-mode 1)

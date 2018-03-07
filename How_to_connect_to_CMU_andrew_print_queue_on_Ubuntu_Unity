@@ -1,0 +1,7 @@
+How to connect to CMU andrew print queue on Ubuntu Unity (16.04)
+
+Printers > Add > Enter URI
+lpd://<andrew-id>@printing.andrew.cmu.edu/<queue>
+where <queue> is andrew or andrew-color.
+HP > LaserJet 4100 > HP LaserJet 4100 Foomatic/Postscript [en]
+Set name.
