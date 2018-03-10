@@ -121,134 +121,26 @@
      )))
  '(vc-follow-symlinks t))
 
-;; Load packages
-(add-to-list 'load-path "~/home/lisp/")
-(add-to-list 'load-path "~/home/lisp/sml-mode")
-(require 'multi-term-ext) ; Maybe a little sketch, but el-doc seems overkill
-(autoload 'sml-mode "sml-mode" "Major mode for editing SML." t)
-(autoload 'run-sml "sml-proc" "Run an inferior SML process." t)
 
-;; Verilog mode
-(autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
-(add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\'" . verilog-mode))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;       Non-package config      ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Load templates
-(auto-insert-mode)
-(setq auto-insert-query nil)
-(setq auto-insert-directory "~/home/templates/")
-(define-auto-insert "\.sv" "template.sv")
+;; Make scratch blank
+(setq initial-scratch-message nil)
+(setq initial-major-mode 'fundamental-mode)
 
-;; SML stuff - copied from 15150
-;; this points to where SML happens to live on local
-(setq sml-program-name "/usr/bin/sml")
+;; Insert is stupid
+(global-set-key (kbd "<insertchar>") 'end-of-line)
+;; (global-set-key (kbd "C-<insertchar>") 'overwrite-mode)
 
-(add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\)\\'" . sml-mode))
+;; Comment out a line
+(global-set-key (kbd "M-'") 'comment-line)
 
-(defun my-sml-mode-hook () "Local defaults for SML mode"
-  (setq sml-indent-level 2)             ; conserve on horizontal space
-  (setq words-include-escape t)         ; \ loses word break status
-;  (setq-default tab-width 2)
-;  (setq indent-line-function 'insert-tab)
-  (defun indent-and-newline ()
-    (interactive)
-    (indent-according-to-mode)
-    (newline))
-;  (local-set-key (kbd "RET") 'reindent-then-newline-and-indent)
-  (local-set-key (kbd "RET") 'indent-and-newline)
-)
-;  (setq indent-tabs-mode nil))          ; never ever indent with tabs
-(add-hook 'sml-mode-hook 'my-sml-mode-hook)
-
-
-;; Irony mode config
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-;(add-hook 'objc-mode-hook 'irony-mode)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
-;; Autocomplete
-(add-hook 'after-init-hook 'global-company-mode)
-;(setq company-global-modes '(not text-mode))
-;(add-hook 'c++-mode-hook 'company-mode)
-;(add-hook 'c-mode-hook 'company-mode)
-(with-eval-after-load 'company
-  (setq company-idle-delay nil)                  ; Don't autocomplete
-  (global-set-key (kbd "M-.") 'company-complete) ; Complete when key pressed
-  (setq company-show-numbers t)                  ; Number suggestions
-  (setq company-selection-wrap-around t)         ; Wrap in suggestion menu
-  (setq company-tooltip-limit 20)                ; Max number of suggestions
-  (setq completion-styles ; Make company complete substrings and initials (this may not be supported by irony I'm not sure)
-        '(basic partial-completion emacs22 substring initials))
-  )
-
-;; Change company colors
-;; (require 'color)
-;; (let ((bg (face-attribute 'default :background)))
-;;   (custom-set-faces
-;;    `(company-tooltip ((t (:inherit default :background ,(color-lighten-name bg 2)))))
-;;    `(company-scrollbar-bg ((t (:background ,(color-lighten-name bg 10)))))
-;;    `(company-scrollbar-fg ((t (:background ,(color-lighten-name bg 5)))))
-;;    `(company-tooltip-selection ((t (:inherit font-lock-function-name-face))))
-;;     `(company-tooltip-common ((t (:inherit font-lock-constant-face))))))
-
-;; Syntax checking
-(add-hook 'c++-mode-hook 'flycheck-mode)
-(add-hook 'c-mode-hook 'flycheck-mode)
-(setq flycheck-python-pylint-executable "pylint3") ; Use pylint3
-(add-hook 'python-mode-hook 'flycheck-mode)
-(with-eval-after-load 'flycheck
-  (setq flycheck-display-errors-delay 0.1) ; Small delay (plays better with eldoc)
-  (setq flycheck-check-syntax-automatically '(mode-enabled save)) ; Only show on save
-  )
-
-;; Displaying the arguments of a function (ELDoc)
-(add-hook 'irony-mode-hook 'irony-eldoc)
-(add-hook 'irony-mode-hook 'irony-eldoc)
-(add-hook 'python-mode-hook 'eldoc-mode)
-(add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
-(with-eval-after-load 'eldoc
-  (setq eldoc-idle-delay 0) ; No delay
-  )
-;; Yasnippet
-(add-hook 'company-mode-hook 'yas-minor-mode)
-
-;; Source: https://gist.github.com/soonhokong/7c2bf6e8b72dbc71c93b
-;; replace the `completion-at-point' and `complete-symbol' bindings in
-;; irony-mode's buffers by irony-mode's function
-;(defun my-irony-mode-hook ()
-;  (define-key irony-mode-map [remap completion-at-point] 'irony-completion-at-point-async)
-;  (define-key irony-mode-map [remap complete-symbol] 'irony-completion-at-point-async))
-;(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-
-;; (optional) adds CC special commands to `company-begin-commands' in order to
-;; trigger completion at interesting places, such as after scope operator
-;; std::|
-;(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-
-;; ==========================================
-;; (optional)bind TAB for indent-or-complete
-;; ==========================================
-;(defun irony--check-expansion () (save-excursion (if (looking-at "\\_>") t (backward-char 1) (if (looking-at "\\.") t (backward-char 1) (if (looking-at "->") t nil)))))
-;(defun irony--indent-or-complete () "Indent or Complete" (interactive) (cond ((and (not (use-region-p)) (irony--check-expansion)) (message "complete") (company-complete-common)) (t (message "indent") (call-interactively 'c-indent-line-or-region))))
-;(defun irony-mode-keys () "Modify keymaps used by `irony-mode'." (local-set-key (kbd "TAB") 'irony--indent-or-complete) (local-set-key [tab] 'irony--indent-or-complete))
-;(add-hook 'c-mode-common-hook 'irony-mode-keys)
-
-;; Setup for relevant modes
-(defcustom python-shell-interpreter "python3"
-    "Default Python interpreter for shell."
-    :type 'string
-    :group 'python)
-(defun my-python-mode-backend-hook ()
-  (add-to-list 'company-backends 'company-jedi)
-  (run-python (python-shell-parse-command)) ;; eldoc needs this, but it's a bug
-  )
-(add-hook 'python-mode-hook 'my-python-mode-backend-hook)
-
-(defun my-c-mode-backend-hook ()
-  (add-to-list 'company-backends 'company-irony)
-  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-(add-hook 'c-mode-hook 'my-c-mode-backend-hook)
-(add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
+;; Line numbers
+(global-linum-mode t)
 
 ;; Nice things
 (column-number-mode)
@@ -257,9 +149,12 @@
 ;; Ask y-or-n instead of yes-or-no
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+;; Don't ask when reverting buffers
+(setq revert-without-query (list ".*"))
+
 ;; Disable asking yes-or-no for certain functions
-(defadvice revert-buffer (around auto-confirm compile activate)
-  (flet ((yes-or-no-p (&rest args) t) (y-or-n-p (&rest args) t)) ad-do-it))
+;; (defadvice revert-buffer (around auto-confirm compile activate)
+;;   (flet ((yes-or-no-p (&rest args) t) (y-or-n-p (&rest args) t)) ad-do-it))
 
 ;; Tramp and remote access
 (setq tramp-default-method "ssh")
@@ -270,16 +165,50 @@
   (interactive)
   (find-file "/ssh:andrew:private"))
 
-;; Neotree
-;(add-hook 'after-init-hook 'neotree-show) ; Show on startup
-;(setq neo-autorefresh nil) ; (autorefresh breaks things in some version)
-(global-set-key (kbd "<f9>") 'neotree-toggle)
+;; Swap regexp and normal replace
+(global-set-key (kbd "M-%") 'query-replace-regexp)
+(global-set-key (kbd "C-M-%") 'query-replace)
 
-;; Movement
-(global-set-key (kbd "C-o") 'ace-window)
-(global-set-key (kbd "M-o") 'next-multiframe-window)
-(global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
-(global-set-key (kbd "M-g") 'goto-line)
+;; Highlight bad whitespace and long lines
+(setq whitespace-style '(face tabs lines-tail trailing)) ;; empty
+(global-whitespace-mode t)
+
+;; Remove trailing whitespace on save
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; Spacing
+(setq-default indent-tabs-mode nil) ; Don't use tabs
+(add-hook 'c-mode-hook '(lambda () (setq c-basic-offset 4)))
+(add-hook 'c++-mode-hook '(lambda () (setq c-basic-offset 4)))
+
+;; ido-mode is neat
+(ido-mode 1)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;        Custom functions       ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Scroll
+;; Scroll one line at a time (less "jumpy" than defaults)
+;(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+;(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+;(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+(setq scroll-step 1) ;; keyboard scroll one line at a time
+(defun my-scroll-up ()
+  (interactive)
+  (scroll-down -1)
+;  (next-line)
+  )
+(defun my-scroll-down ()
+  (interactive)
+  (scroll-down 1)
+;  (previous-line)
+  )
+(global-set-key (kbd "M-<down>") 'my-scroll-up)
+(global-set-key (kbd "M-<up>") 'my-scroll-down)
 
 ;; Smart backspace
 ;; Inspired by https://stackoverflow.com/a/28227677
@@ -334,63 +263,6 @@
   (setq paste-active-minor-modes nil)
   )
 
-
-;; Swap regexp and normal replace
-(global-set-key (kbd "M-%") 'query-replace-regexp)
-(global-set-key (kbd "C-M-%") 'query-replace)
-
-;; Highlight bad whitespace and long lines
-(setq whitespace-style '(face tabs lines-tail trailing)) ;; empty
-(global-whitespace-mode t)
-
-;; Remove trailing whitespace on save
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-;; Spacing
-(setq-default indent-tabs-mode nil) ; Don't use tabs
-(add-hook 'c-mode-hook '(lambda () (setq c-basic-offset 4)))
-(add-hook 'c++-mode-hook '(lambda () (setq c-basic-offset 4)))
-
-;; Scroll
-;; Scroll one line at a time (less "jumpy" than defaults)
-;(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
-;(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
-;(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
-(setq scroll-step 1) ;; keyboard scroll one line at a time
-(defun my-scroll-up ()
-  (interactive)
-  (scroll-down -1)
-;  (next-line)
-  )
-(defun my-scroll-down ()
-  (interactive)
-  (scroll-down 1)
-;  (previous-line)
-  )
-(global-set-key (kbd "M-<down>") 'my-scroll-up)
-(global-set-key (kbd "M-<up>") 'my-scroll-down)
-
-
-;; Webmode coloring
-;; (defun my-web-mode-hook ()
-;;   (set-face-attribute 'web-mode-html-tag-face nil :foreground "Cyan")
-;;   (set-face-attribute 'web-mode-html-tag-bracket-face nil :foreground "Pink7")
-;;   (set-face-attribute 'web-mode-html-attr-name-face nil :foreground "Pink1")
-;;   )
-;; (add-hook 'web-mode-hook 'my-web-mode-hook)
-
-;; Kill ring keybinding
-(add-hook 'prog-mode-hook 'browse-kill-ring-default-keybindings)
-
-;; Hide show
-(add-hook 'prog-mode-hook 'hs-minor-mode)
-(global-set-key (kbd "M-H") 'hs-hide-block)
-(global-set-key (kbd "M-S") 'hs-show-block)
-
-;; Undo tree
-(add-hook 'after-init-hook 'global-undo-tree-mode)
-(global-set-key (kbd "M-l") 'undo-tree-redo) ; C-? would be great
-
 ;; Make '_' a character
 (defun make-underscore-character ()
   (interactive)
@@ -413,31 +285,51 @@
 (eval-after-load 'LaTeX-mode
   (local-set-key (kbd "C-c C-j") 'compile-latex))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;         Package config        ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Movement
+(global-set-key (kbd "M-o") 'next-multiframe-window)
+(global-set-key (kbd "M-g") 'goto-line)
+(global-set-key (kbd "C-o") 'ace-window)
+(global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
+
+;; Neotree
+;(add-hook 'after-init-hook 'neotree-show) ; Show on startup
+;(setq neo-autorefresh nil) ; (autorefresh breaks things in some version)
+(global-set-key (kbd "<f9>") 'neotree-toggle)
+
+;; Webmode coloring
+;; (defun my-web-mode-hook ()
+;;   (set-face-attribute 'web-mode-html-tag-face nil :foreground "Cyan")
+;;   (set-face-attribute 'web-mode-html-tag-bracket-face nil :foreground "Pink7")
+;;   (set-face-attribute 'web-mode-html-attr-name-face nil :foreground "Pink1")
+;;   )
+;; (add-hook 'web-mode-hook 'my-web-mode-hook)
+
+;; Kill ring keybinding
+(add-hook 'prog-mode-hook 'browse-kill-ring-default-keybindings)
+
+;; Hide show
+(add-hook 'prog-mode-hook 'hs-minor-mode)
+(global-set-key (kbd "M-H") 'hs-hide-block)
+(global-set-key (kbd "M-S") 'hs-show-block)
+
+;; Undo tree
+(add-hook 'after-init-hook 'global-undo-tree-mode)
+(global-set-key (kbd "M-l") 'undo-tree-redo) ; C-? would be great
+
 ;; Rust setup
 (defun my-rust-config ()
   (local-set-key (kbd "C-c C-v") 'rust-compile))
 (add-hook 'rust-mode-hook 'my-rust-config)
 
-
-;; ido-mode is neat
-(ido-mode 1)
-
 ;; magit
 (global-set-key (kbd "C-x g") 'magit-status)
-
-;; Make scratch blank
-(setq initial-scratch-message nil)
-(setq initial-major-mode 'fundamental-mode)
-
-;; Insert is stupid
-(global-set-key (kbd "<insertchar>") 'end-of-line)
-;; (global-set-key (kbd "C-<insertchar>") 'overwrite-mode)
-
-;; Comment out a line
-(global-set-key (kbd "M-'") 'comment-line)
-
-;; Line numbers
-(global-linum-mode t)
 
 ;; Key chord
 (defun my-key-chord-fun ()
@@ -458,6 +350,146 @@
 ;; Set the basic indentation for Java source files to two spaces.
 (add-hook 'jdee-mode-hook '(lambda () (setq c-basic-offset 2)))
 
+;; Irony mode config
+;; Setup instructions (from https://github.com/Sarcasm/irony-mode):
+;; sudo apt install libclang-dev cmake
+;; M-x irony-install-server
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+;(add-hook 'objc-mode-hook 'irony-mode)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+
+;; Autocomplete
+(add-hook 'after-init-hook 'global-company-mode)
+;(setq company-global-modes '(not text-mode))
+;(add-hook 'c++-mode-hook 'company-mode)
+;(add-hook 'c-mode-hook 'company-mode)
+(with-eval-after-load 'company
+  (setq company-idle-delay nil)                  ; Don't autocomplete
+  (global-set-key (kbd "M-.") 'company-complete) ; Complete when key pressed
+  (setq company-show-numbers t)                  ; Number suggestions
+  (setq company-selection-wrap-around t)         ; Wrap in suggestion menu
+  (setq company-tooltip-limit 20)                ; Max number of suggestions
+  (setq completion-styles ; Make company complete substrings and initials (this may not be supported by irony I'm not sure)
+        '(basic partial-completion emacs22 substring initials))
+  )
+
+;; Change company colors
+;; (require 'color)
+;; (let ((bg (face-attribute 'default :background)))
+;;   (custom-set-faces
+;;    `(company-tooltip ((t (:inherit default :background ,(color-lighten-name bg 2)))))
+;;    `(company-scrollbar-bg ((t (:background ,(color-lighten-name bg 10)))))
+;;    `(company-scrollbar-fg ((t (:background ,(color-lighten-name bg 5)))))
+;;    `(company-tooltip-selection ((t (:inherit font-lock-function-name-face))))
+;;     `(company-tooltip-common ((t (:inherit font-lock-constant-face))))))
+
+;; Syntax checking
+(add-hook 'c++-mode-hook 'flycheck-mode)
+(add-hook 'c-mode-hook 'flycheck-mode)
+(setq flycheck-python-pylint-executable "pylint3") ; Use pylint3
+(add-hook 'python-mode-hook 'flycheck-mode)
+(with-eval-after-load 'flycheck
+  (setq flycheck-display-errors-delay 0.1) ; Small delay (plays better with eldoc)
+  (setq flycheck-check-syntax-automatically '(mode-enabled save)) ; Only show on save
+  )
+
+;; Displaying the arguments of a function (ELDoc)
+(add-hook 'irony-mode-hook 'irony-eldoc)
+(add-hook 'irony-mode-hook 'irony-eldoc)
+(add-hook 'python-mode-hook 'eldoc-mode)
+(add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+(with-eval-after-load 'eldoc
+  (setq eldoc-idle-delay 0) ; No delay
+  )
+
+;; Yasnippet
+(add-hook 'company-mode-hook 'yas-minor-mode)
+
+;; Source: https://gist.github.com/soonhokong/7c2bf6e8b72dbc71c93b
+;; replace the `completion-at-point' and `complete-symbol' bindings in
+;; irony-mode's buffers by irony-mode's function
+;(defun my-irony-mode-hook ()
+;  (define-key irony-mode-map [remap completion-at-point] 'irony-completion-at-point-async)
+;  (define-key irony-mode-map [remap complete-symbol] 'irony-completion-at-point-async))
+;(add-hook 'irony-mode-hook 'my-irony-mode-hook)
+
+;; (optional) adds CC special commands to `company-begin-commands' in order to
+;; trigger completion at interesting places, such as after scope operator
+;; std::|
+;(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+
+;; ==========================================
+;; (optional)bind TAB for indent-or-complete
+;; ==========================================
+;(defun irony--check-expansion () (save-excursion (if (looking-at "\\_>") t (backward-char 1) (if (looking-at "\\.") t (backward-char 1) (if (looking-at "->") t nil)))))
+;(defun irony--indent-or-complete () "Indent or Complete" (interactive) (cond ((and (not (use-region-p)) (irony--check-expansion)) (message "complete") (company-complete-common)) (t (message "indent") (call-interactively 'c-indent-line-or-region))))
+;(defun irony-mode-keys () "Modify keymaps used by `irony-mode'." (local-set-key (kbd "TAB") 'irony--indent-or-complete) (local-set-key [tab] 'irony--indent-or-complete))
+;(add-hook 'c-mode-common-hook 'irony-mode-keys)
+
+;; Setup for relevant modes
+(defcustom python-shell-interpreter "python3"
+    "Default Python interpreter for shell."
+    :type 'string
+    :group 'python)
+(defun my-python-mode-backend-hook ()
+  (add-to-list 'company-backends 'company-jedi)
+  (run-python (python-shell-parse-command)) ;; eldoc needs this, but it's a bug
+  )
+(add-hook 'python-mode-hook 'my-python-mode-backend-hook)
+
+(defun my-c-mode-backend-hook ()
+  (add-to-list 'company-backends 'company-irony)
+  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+(add-hook 'c-mode-hook 'my-c-mode-backend-hook)
+(add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;         Loading files         ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Load packages
+(add-to-list 'load-path "~/home/lisp/")
+(add-to-list 'load-path "~/home/lisp/sml-mode")
+(require 'multi-term-ext) ; Maybe a little sketch, but el-doc seems overkill
+(autoload 'sml-mode "sml-mode" "Major mode for editing SML." t)
+(autoload 'run-sml "sml-proc" "Run an inferior SML process." t)
+
+;; Verilog mode
+(autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
+(add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\'" . verilog-mode))
+
+;; Load templates
+(auto-insert-mode)
+(setq auto-insert-query nil)
+(setq auto-insert-directory "~/home/templates/")
+(define-auto-insert "\.sv" "template.sv")
+
+;; SML stuff - copied from 15150
+;; this points to where SML happens to live on local
+(setq sml-program-name "/usr/bin/sml")
+(add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\)\\'" . sml-mode))
+
+(defun my-sml-mode-hook () "Local defaults for SML mode"
+  (setq sml-indent-level 2)             ; conserve on horizontal space
+  (setq words-include-escape t)         ; \ loses word break status
+;  (setq-default tab-width 2)
+;  (setq indent-line-function 'insert-tab)
+  (defun indent-and-newline ()
+    (interactive)
+    (indent-according-to-mode)
+    (newline))
+;  (local-set-key (kbd "RET") 'reindent-then-newline-and-indent)
+  (local-set-key (kbd "RET") 'indent-and-newline))
+
+(add-hook 'sml-mode-hook 'my-sml-mode-hook)
+
+;; End of .emacs ;;
+;; Color theme
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
