@@ -469,6 +469,18 @@
 (setq auto-insert-directory "~/home/templates/")
 (define-auto-insert "\.sv" "template.sv")
 
+;; Multi-term mode
+;; See: https://github.com/rlister/emacs.d/blob/master/lisp/multi-term-cfg.el
+(defun term-send-ctrl-z ()
+  "Allow using ctrl-z to suspend in multi-term shells."
+  (interactive)
+  (term-send-raw-string ""))
+
+(add-hook 'term-mode-hook
+          (lambda ()
+            (linum-mode -1) ; Disable line numbers
+            (add-to-list 'term-bind-key-alist '("C-c C-z" . term-send-ctrl-z))))
+
 ;; SML stuff - copied from 15150
 ;; this points to where SML happens to live on local
 (setq sml-program-name "/usr/bin/sml")
@@ -488,7 +500,7 @@
 
 (add-hook 'sml-mode-hook 'my-sml-mode-hook)
 
-;; End of .emacs ;;
+
 ;; Color theme
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
