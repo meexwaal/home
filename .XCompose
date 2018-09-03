@@ -15,6 +15,7 @@
 # Remove \n after #eww to make it weird again
 
 # MINE
+
 #IPA
 <Multi_key> <d> <minus>                 : "ð"   # eth
 <Multi_key> <s> <h>                     : "ʃ"   # esh
@@ -61,6 +62,16 @@
 <Multi_key> <g> <s>                     : "σ"   # sigma
 <Multi_key> <U> <U>                     : "∪"   # union
 <Multi_key> <N> <N>                     : "∩"   # intersection
+<Multi_key> <bar> <N>                   : "ℕ"   # blackboard bold naturals
+<Multi_key> <bar> <n>                   : "ℕ"   # blackboard bold naturals
+<Multi_key> <bar> <Z>                   : "ℤ"   # blackboard bold integers
+<Multi_key> <bar> <z>                   : "ℤ"   # blackboard bold integers
+<Multi_key> <bar> <Q>                   : "ℚ"   # blackboard bold rationals
+<Multi_key> <bar> <q>                   : "ℚ"   # blackboard bold rationals
+<Multi_key> <bar> <R>                   : "ℝ"   # blackboard bold reals
+<Multi_key> <bar> <r>                   : "ℝ"   # blackboard bold reals
+<Multi_key> <bar> <C>                   : "ℂ"   # blackboard bold complex
+<Multi_key> <bar> <c>                   : "ℂ"   # blackboard bold complex
 
 <Multi_key> <p> <i> : "π"
 <Multi_key> <g> <p> : "π"
@@ -122,7 +133,7 @@
 <Multi_key> <space> <0> : "​" # Zero width space
 <Multi_key> <bar> <space> : " " # Hair space
 <Multi_key> <space> <bar> : " " # Hair space
-<Multi_key> <plus> <o> : "⊕" # Hair space
+<Multi_key> <plus> <o> : "⊕" # XOR
 
 # Part 1 - Manual definitions
 
@@ -327,8 +338,8 @@
 # "₵" U20b5 CEDI SIGN
 
 
-<Multi_key> <bar> <C>            	: "¢"   cent # CENT SIGN
-<Multi_key> <bar> <c>            	: "¢"   cent # CENT SIGN
+#<Multi_key> <bar> <C>            	: "¢"   cent # CENT SIGN
+#<Multi_key> <bar> <c>            	: "¢"   cent # CENT SIGN
 <Multi_key> <C> <bar>            	: "¢"   cent # CENT SIGN
 <Multi_key> <c> <bar>            	: "¢"   cent # CENT SIGN
 <Multi_key> <c> <slash>          	: "¢"   cent # CENT SIGN
