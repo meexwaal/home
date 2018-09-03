@@ -1,9 +1,10 @@
 Host andrew
-     HostName unix.andrew.cmu.edu
+     HostName unix6.andrew.cmu.edu
      User msjohnso
 
 Host ece
-     HostName ece023.campus.ece.cmu.local
+     HostName 172.19.136.194
+     #HostName ece023.campus.ece.cmu.local
      User msjohnso
 
 Host cclub
@@ -12,4 +13,8 @@ Host cclub
 
 Host shark
      HostName lemonshark.ics.cs.cmu.edu
+     User msjohnso
+
+Host parallel
+     HostName ghc34.ghc.andrew.cmu.edu
      User msjohnso

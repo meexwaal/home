@@ -88,13 +88,14 @@
  '(jdee-run-applet-viewer "appletviewer")
  '(jdee-server-dir "~/.myJars")
  '(lpr-page-header-program "pr")
+ '(markdown-command "pandoc")
  '(package-archives
    (quote
     (("gnu" . "http://elpa.gnu.org/packages/")
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+    (0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
  '(term-bind-key-alist
    (quote
     (("C-c C-c" . term-interrupt-subjob)
@@ -104,7 +105,6 @@
      ("C-s" . isearch-forward)
      ("M-r" . isearch-backward)
      ("C-m" . term-send-return)
-     ("C-y" . term-paste)
      ("M-f" . term-send-forward-word)
      ("M-b" . term-send-backward-word)
      ("M-p" . term-send-up)
@@ -116,9 +116,7 @@
      ("<C-left>" . term-send-backward-word)
      ("<C-right>" . term-send-forward-word)
      ("M-d" . term-send-delete-word)
-     ("M-," . term-send-raw)
-     ;("M-." . comint-dynamic-complete)
-     )))
+     ("M-," . term-send-raw))))
  '(vc-follow-symlinks t))
 
 
@@ -158,12 +156,22 @@
 
 ;; Tramp and remote access
 (setq tramp-default-method "ssh")
+
+(defun open-remote (host directory)
+  (interactive)
+  (if (fboundp 'multi-term-remote)
+      (multi-term-remote host)
+      (message "multi-term-remote not defined"))
+  (split-window-horizontally)
+  (find-file (concat "/ssh:" host ":" directory)))
+
 (defun 213-remote ()
   (interactive)
-  (find-file "/ssh:shark:private/213"))
+  (open-remote "shark" "private/213/"))
+
 (defun andrew-remote ()
   (interactive)
-  (find-file "/ssh:andrew:private"))
+  (open-remote "andrew" "private/"))
 
 ;; Swap regexp and normal replace
 (global-set-key (kbd "M-%") 'query-replace-regexp)

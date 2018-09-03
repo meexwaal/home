@@ -10,10 +10,11 @@ alias edit="emacs -nw"
 export EDITOR="emacs -nw"
 
 export PATH=$PATH:$HOME/bin:$HOME/home/bin:$HOME/.local/bin
-export CPPFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c++14" "-pedantic" "-g")
-export CFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c11" "-pedantic" "-g")
+CPPFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c++14" "-pedantic" "-g")
+CFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c11" "-pedantic" "-g")
 
 alias gst=" git status"
+alias smlnj="rlwrap sml"
 
 export PS1=" %{%F{red}%B%}%n%{%f%b%} | "  # " max | "
 #export PS1="[%{%F{red}%B%}%n%{%f%b%}]: " # "[max]: "
