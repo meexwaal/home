@@ -1,0 +1,13 @@
+Caps lock is shift, left control is Caps Lock,
+and altGr and right control are swapped.
+
+In /usr/share/X11/xkb/symbols/pc:
+edit key <CAPS> and key <LCTL>.
+
+In /usr/share/X11/xkb/keycodes/evdev:
+swap the keycode values for RCTL and RALT.
+
+Run
+setxkbmap -layout us
+to update the values changed in pc (you may have to delete a file - google it).
+Restart (maybe just log out/in) to update evdev values
