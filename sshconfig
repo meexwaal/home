@@ -5,6 +5,7 @@ Host andrew
 Host ece
      HostName 172.19.136.194
      #HostName ece023.campus.ece.cmu.local
+     #HostName linux.ece.cmu.edu
      User msjohnso
 
 Host cclub
@@ -17,4 +18,8 @@ Host shark
 
 Host parallel
      HostName ghc34.ghc.andrew.cmu.edu
+     User msjohnso
+
+Host latedays
+     HostName latedays.andrew.cmu.edu
      User msjohnso

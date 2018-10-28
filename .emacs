@@ -47,6 +47,17 @@
  '(ansi-color-names-vector
    ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(custom-enabled-themes (quote (tsdh-dark)))
+ '(display-time-string-forms
+   (quote
+    ((propertize
+      (format-time-string
+       (or display-time-format
+           (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
+       now)
+      (quote help-echo)
+      (format-time-string "%a %b %e, %Y" now)
+      (quote face)
+      (quote bold)))))
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(jdee-global-classpath (quote ("." "out" "$CLASSPATH")))
@@ -95,7 +106,7 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+    (cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
  '(term-bind-key-alist
    (quote
     (("C-c C-c" . term-interrupt-subjob)
@@ -117,8 +128,57 @@
      ("<C-right>" . term-send-forward-word)
      ("M-d" . term-send-delete-word)
      ("M-," . term-send-raw))))
- '(vc-follow-symlinks t))
+ '(vc-follow-symlinks t)
+ '(verilog-auto-newline (quote nil)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;      Common Keybindings       ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Move arrow keys
+(define-key key-translation-map (kbd "M-j") (kbd "<left>"))
+(define-key key-translation-map (kbd "M-l") (kbd "<right>"))
+(define-key key-translation-map (kbd "M-i") (kbd "<up>"))
+(define-key key-translation-map (kbd "M-k") (kbd "<down>"))
+(define-key key-translation-map (kbd "C-M-j") (kbd "C-<left>"))
+(define-key key-translation-map (kbd "C-M-l") (kbd "C-<right>"))
+(define-key key-translation-map (kbd "C-M-i") (kbd "C-<up>"))
+(define-key key-translation-map (kbd "C-M-k") (kbd "C-<down>"))
+
+;; Credit: https://stackoverflow.com/a/683575/5135869
+(defvar common-keys-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; AltGr is mapped to control, which is weird
+    (define-key map (kbd "M-SPC") 'set-mark-command)
+    (define-key map (kbd "M-w") 'kill-ring-save)
+    (define-key map (kbd "C-w") 'kill-region)
+    (define-key map (kbd "C-y") 'yank-pop)
+    (define-key map (kbd "M-y") 'yank)
+    (define-key map (kbd "C-]") 'query-replace-regexp) ; Functionally C-5
+    (define-key map (kbd "C-^") 'delete-indentation)   ; Functionally C-6
+    (define-key map (kbd "M-u") 'universal-argument)
+    (define-key map (kbd "M-N") 'forward-list)
+    (define-key map (kbd "M-P") 'backward-list)
+
+    ;; Other
+    (define-key map (kbd "M-a") 'back-to-indentation)
+    (define-key map (kbd "M-m") 'kill-line)
+
+    ;; Keybindings that don't work because of my keyboard, probably
+    ; (define-key map (kbd "C-<") 'beginning-of-buffer)
+    ; (define-key map (kbd "C->") 'end-of-buffer)
+
+    map)
+  "common-keys-minor-mode keymap")
+
+(define-minor-mode common-keys-minor-mode
+  "A minor mode to ensure certain bindings aren't overridden."
+  :init-value t)
+
+(common-keys-minor-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -130,8 +190,8 @@
 (setq initial-scratch-message nil)
 (setq initial-major-mode 'fundamental-mode)
 
-;; Insert is stupid
-(global-set-key (kbd "<insertchar>") 'end-of-line)
+;; Insert is stupid on some keyboards
+;; (global-set-key (kbd "<insertchar>") 'end-of-line)
 ;; (global-set-key (kbd "C-<insertchar>") 'overwrite-mode)
 
 ;; Comment out a line
@@ -169,13 +229,21 @@
   (interactive)
   (open-remote "shark" "private/213/"))
 
+(defun parallel-remote ()
+  (interactive)
+  (open-remote "parallel" "private/418/"))
+
+(defun latedays-remote ()
+  (interactive)
+  (open-remote "latedays" "~"))
+
+(defun ece-remote ()
+  (interactive)
+  (open-remote "ece" "Private/341/"))
+
 (defun andrew-remote ()
   (interactive)
   (open-remote "andrew" "private/"))
-
-;; Swap regexp and normal replace
-(global-set-key (kbd "M-%") 'query-replace-regexp)
-(global-set-key (kbd "C-M-%") 'query-replace)
 
 ;; Highlight bad whitespace and long lines
 (setq whitespace-style '(face tabs lines-tail trailing)) ;; empty
@@ -192,6 +260,8 @@
 ;; ido-mode is neat
 (ido-mode 1)
 
+;; Show the time in the mode line
+(display-time)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -304,7 +374,7 @@
 (global-set-key (kbd "M-o") 'next-multiframe-window)
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "C-o") 'ace-window)
-(global-set-key (kbd "M-k") 'avy-goto-word-or-subword-1)
+(global-set-key (kbd "C-k") 'avy-goto-word-or-subword-1)
 
 ;; Neotree
 ;(add-hook 'after-init-hook 'neotree-show) ; Show on startup
@@ -329,7 +399,8 @@
 
 ;; Undo tree
 (add-hook 'after-init-hook 'global-undo-tree-mode)
-(global-set-key (kbd "M-l") 'undo-tree-redo) ; C-? would be great
+(global-set-key (kbd "M-r") 'undo-tree-redo)
+(global-set-key (kbd "M-f") 'undo-tree-undo)
 
 ;; Rust setup
 (defun my-rust-config ()
