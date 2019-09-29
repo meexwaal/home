@@ -129,7 +129,22 @@
      ("M-d" . term-send-delete-word)
      ("M-," . term-send-raw))))
  '(vc-follow-symlinks t)
- '(verilog-auto-newline (quote nil)))
+ '(verilog-indent-level 2)
+ '(verilog-indent-level-behavioral 2)
+ '(verilog-indent-level-declaration 2)
+ '(verilog-indent-level-module 2)
+ '(verilog-case-indent 2)
+ '(verilog-cexp-indent 2)
+ '(verilog-auto-newline (quote nil))
+ ; Not sure what these do
+ '(verilog-auto-inst-param-value t)
+ '(verilog-auto-inst-vector nil)
+ '(verilog-auto-lineup (quote all))
+ '(verilog-auto-save-policy nil)
+ '(verilog-auto-template-warn-unused t)
+ '(verilog-highlight-grouping-keywords t)
+ '(verilog-highlight-modules t)
+ )
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -239,7 +254,11 @@
 
 (defun ece-remote ()
   (interactive)
-  (open-remote "ece" "Private/341/"))
+  (open-remote "ece" "Private/447/"))
+
+(defun ece-git-remote ()
+  (interactive)
+  (open-remote "msjohnso@linux.ece.cmu.edu" "Private/447/"))
 
 (defun andrew-remote ()
   (interactive)
@@ -433,14 +452,14 @@
 ;; Setup instructions (from https://github.com/Sarcasm/irony-mode):
 ;; sudo apt install libclang-dev cmake
 ;; M-x irony-install-server
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
+;(add-hook 'c++-mode-hook 'irony-mode)
+;(add-hook 'c-mode-hook 'irony-mode)
 ;(add-hook 'objc-mode-hook 'irony-mode)
 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
 
 ;; Autocomplete
-(add-hook 'after-init-hook 'global-company-mode)
+;(add-hook 'after-init-hook 'global-company-mode)
 ;(setq company-global-modes '(not text-mode))
 ;(add-hook 'c++-mode-hook 'company-mode)
 ;(add-hook 'c-mode-hook 'company-mode)
@@ -465,26 +484,26 @@
 ;;     `(company-tooltip-common ((t (:inherit font-lock-constant-face))))))
 
 ;; Syntax checking
-(add-hook 'c++-mode-hook 'flycheck-mode)
-(add-hook 'c-mode-hook 'flycheck-mode)
-(setq flycheck-python-pylint-executable "pylint3") ; Use pylint3
-(add-hook 'python-mode-hook 'flycheck-mode)
+;(add-hook 'c++-mode-hook 'flycheck-mode)
+;(add-hook 'c-mode-hook 'flycheck-mode)
+;(setq flycheck-python-pylint-executable "pylint3") ; Use pylint3
+;(add-hook 'python-mode-hook 'flycheck-mode)
 (with-eval-after-load 'flycheck
   (setq flycheck-display-errors-delay 0.1) ; Small delay (plays better with eldoc)
   (setq flycheck-check-syntax-automatically '(mode-enabled save)) ; Only show on save
   )
 
 ;; Displaying the arguments of a function (ELDoc)
-(add-hook 'irony-mode-hook 'irony-eldoc)
-(add-hook 'irony-mode-hook 'irony-eldoc)
-(add-hook 'python-mode-hook 'eldoc-mode)
+;(add-hook 'irony-mode-hook 'irony-eldoc)
+;(add-hook 'irony-mode-hook 'irony-eldoc)
+;(add-hook 'python-mode-hook 'eldoc-mode)
 (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
 (with-eval-after-load 'eldoc
   (setq eldoc-idle-delay 0) ; No delay
   )
 
 ;; Yasnippet
-(add-hook 'company-mode-hook 'yas-minor-mode)
+;(add-hook 'company-mode-hook 'yas-minor-mode)
 
 ;; Source: https://gist.github.com/soonhokong/7c2bf6e8b72dbc71c93b
 ;; replace the `completion-at-point' and `complete-symbol' bindings in
@@ -513,14 +532,15 @@
     :type 'string
     :group 'python)
 (defun my-python-mode-backend-hook ()
-  (add-to-list 'company-backends 'company-jedi)
+  ;(add-to-list 'company-backends 'company-jedi)
   (run-python (python-shell-parse-command)) ;; eldoc needs this, but it's a bug
   )
 (add-hook 'python-mode-hook 'my-python-mode-backend-hook)
 
 (defun my-c-mode-backend-hook ()
-  (add-to-list 'company-backends 'company-irony)
-  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  ;(add-to-list 'company-backends 'company-irony)
+  ;(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
+  )
 (add-hook 'c-mode-hook 'my-c-mode-backend-hook)
 (add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
 
@@ -588,3 +608,5 @@
  ;; If there is more than one, they won't work right.
  '(comint-highlight-prompt ((t (:inherit minibuffer-prompt))))
  '(minibuffer-prompt ((t (:background "color-236" :foreground "white" :box (:line-width -1 :color "red" :style released-button) :weight bold)))))
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)

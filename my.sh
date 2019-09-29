@@ -21,9 +21,9 @@ export PS1=" %{%F{red}%B%}%n%{%f%b%} | "  # " max | "
 export RPROMPT="%F{green}%~%f"
 
 # ls things
-alias ls=' ls --color=auto --hide="*~"'
-alias la=" ls -a"
-alias l=" ls -alh"
+alias ls='ls --color=auto --hide="*~"'
+alias la="ls -a"
+alias l="ls -alh"
 alias fg=" fg"
 eval $(dircolors -b $HOME/.dircolors) # https://github.com/trapd00r/LS_COLORS
 
