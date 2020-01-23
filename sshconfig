@@ -8,6 +8,10 @@ Host ece
      #HostName linux.ece.cmu.edu
      User msjohnso
 
+Host linuxece
+     HostName linux.ece.cmu.edu
+     User msjohnso
+
 Host cclub
      HostName unix.club.cc.cmu.edu
      User msjohnso

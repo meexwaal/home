@@ -106,45 +106,36 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+    (autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+ '(ring-bell-function (quote ignore))
  '(term-bind-key-alist
    (quote
-    (("C-c C-c" . term-interrupt-subjob)
-     ("C-c C-e" . term-send-esc)
+    (("M-e" . term-send-esc)
      ("C-p" . previous-line)
      ("C-n" . next-line)
      ("C-s" . isearch-forward)
      ("M-r" . isearch-backward)
-     ("C-m" . term-send-return)
-     ("M-f" . term-send-forward-word)
-     ("M-b" . term-send-backward-word)
      ("M-p" . term-send-up)
      ("M-n" . term-send-down)
-     ("M-M" . term-send-forward-kill-word)
-     ("M-N" . term-send-backward-kill-word)
      ("C-h" . term-send-backward-kill-word)
      ("M-DEL" . term-send-backward-kill-word)
      ("<C-left>" . term-send-backward-word)
-     ("<C-right>" . term-send-forward-word)
-     ("M-d" . term-send-delete-word)
-     ("M-," . term-send-raw))))
+     ("<C-right>" . term-send-forward-word))))
  '(vc-follow-symlinks t)
- '(verilog-indent-level 2)
- '(verilog-indent-level-behavioral 2)
- '(verilog-indent-level-declaration 2)
- '(verilog-indent-level-module 2)
- '(verilog-case-indent 2)
- '(verilog-cexp-indent 2)
- '(verilog-auto-newline (quote nil))
- ; Not sure what these do
  '(verilog-auto-inst-param-value t)
  '(verilog-auto-inst-vector nil)
  '(verilog-auto-lineup (quote all))
+ '(verilog-auto-newline (quote nil))
  '(verilog-auto-save-policy nil)
  '(verilog-auto-template-warn-unused t)
+ '(verilog-case-indent 2)
+ '(verilog-cexp-indent 2)
  '(verilog-highlight-grouping-keywords t)
  '(verilog-highlight-modules t)
- )
+ '(verilog-indent-level 2)
+ '(verilog-indent-level-behavioral 2)
+ '(verilog-indent-level-declaration 2)
+ '(verilog-indent-level-module 2))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -152,6 +143,12 @@
 ;;      Common Keybindings       ;;
 ;;                               ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Mac keys
+;; https://www.emacswiki.org/emacs/EmacsForMacOS#toc31
+;; (setq mac-command-modifier 'meta)
+;; (setq mac-right-command-modifier 'control)
+;; (setq mac-control-modifier 'super)
 
 ;; Move arrow keys
 (define-key key-translation-map (kbd "M-j") (kbd "<left>"))
@@ -172,8 +169,10 @@
     (define-key map (kbd "C-w") 'kill-region)
     (define-key map (kbd "C-y") 'yank-pop)
     (define-key map (kbd "M-y") 'yank)
-    (define-key map (kbd "C-]") 'query-replace-regexp) ; Functionally C-5
-    (define-key map (kbd "C-^") 'delete-indentation)   ; Functionally C-6
+    (define-key map (kbd "C-5") 'query-replace-regexp) ; Previously C-]
+    (define-key map (kbd "C-6") 'delete-indentation)   ; Previously C-^
+    ;; (define-key map (kbd "C-]") 'query-replace-regexp) ; Functionally C-5
+    ;; (define-key map (kbd "C-^") 'delete-indentation)   ; Functionally C-6
     (define-key map (kbd "M-u") 'universal-argument)
     (define-key map (kbd "M-N") 'forward-list)
     (define-key map (kbd "M-P") 'backward-list)
@@ -234,9 +233,10 @@
 
 (defun open-remote (host directory)
   (interactive)
-  (if (fboundp 'multi-term-remote)
-      (multi-term-remote host)
-      (message "multi-term-remote not defined"))
+  ;; TODO: replace multi-term with shell?
+  ;; (if (fboundp 'multi-term-remote)
+  ;;     (multi-term-remote host)
+  ;;     (message "multi-term-remote not defined"))
   (split-window-horizontally)
   (find-file (concat "/ssh:" host ":" directory)))
 
@@ -264,6 +264,25 @@
   (interactive)
   (open-remote "andrew" "private/"))
 
+(defun os-remote ()
+  (interactive)
+  (open-remote "andrew" "cur"))
+
+(defun multi-term-in-directory ()
+  (interactive)
+  (if (fboundp 'multi-term-remote)
+      (let ((cur-dir default-directory))
+        (progn
+          ; Bind the user+host and the directory of the current file
+          (string-match "^/ssh:\\([^:]+\\):\\(.*\\)$" cur-dir)
+          ; Open a terminal to the current host
+          (multi-term-remote (match-string 1 cur-dir))
+          ; cd to the open directory
+          (term-send-raw-string (concat "cd " (match-string 2 cur-dir) "\n"))
+          )
+        )
+    (message "multi-term-remote not defined")))
+
 ;; Highlight bad whitespace and long lines
 (setq whitespace-style '(face tabs lines-tail trailing)) ;; empty
 (global-whitespace-mode t)
@@ -281,6 +300,23 @@
 
 ;; Show the time in the mode line
 (display-time)
+
+;; Find file at point
+(global-set-key (kbd "C-x C-d") 'find-file-at-point)
+
+;; Enable C-x C-l and C-x C-u for downcase/upcase region
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+
+;; Highlight doxygen comments in C/C++ and assembly
+(require 'highlight-doxygen)
+(add-hook 'c-mode-hook 'highlight-doxygen-mode)
+(add-hook 'c++-mode-hook 'highlight-doxygen-mode)
+(add-hook 'asm-mode-hook 'highlight-doxygen-mode)
+
+;; Enable autopair for C and C++
+(add-hook 'c-mode-hook 'autopair-mode)
+(add-hook 'c++-mode-hook 'autopair-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -337,6 +373,7 @@
           ))))) ;; TODO: apparently replace-regexp is not the way to go
 
 (global-set-key (kbd "M-DEL") 'my-delete-back)
+(global-set-key (kbd "C-<backspace>") 'my-delete-back)
 (global-set-key (kbd "C-h") 'my-delete-back) ; C-h = C-backspace
 (global-set-key (kbd "M-h") 'kill-word)
 
@@ -533,7 +570,7 @@
     :group 'python)
 (defun my-python-mode-backend-hook ()
   ;(add-to-list 'company-backends 'company-jedi)
-  (run-python (python-shell-parse-command)) ;; eldoc needs this, but it's a bug
+  ;(run-python (python-shell-parse-command)) ;; eldoc needs this, but it's a bug
   )
 (add-hook 'python-mode-hook 'my-python-mode-backend-hook)
 
@@ -541,9 +578,10 @@
   ;(add-to-list 'company-backends 'company-irony)
   ;(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
   )
-(add-hook 'c-mode-hook 'my-c-mode-backend-hook)
-(add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
+;; (add-hook 'c-mode-hook 'my-c-mode-backend-hook)
+;; (add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
 
+(add-hook 'doc-view-mode-hook '(lambda () (linum-mode -1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -560,7 +598,7 @@
 
 ;; Verilog mode
 (autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
-(add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\'" . verilog-mode))
+(add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\(.erb\\)?\\'" . verilog-mode))
 
 ;; Load templates
 (auto-insert-mode)
@@ -570,18 +608,43 @@
 
 ;; Multi-term mode
 ;; See: https://github.com/rlister/emacs.d/blob/master/lisp/multi-term-cfg.el
+
+;; Deprecated in favor of term-send-raw-control
 (defun term-send-ctrl-z ()
   "Allow using ctrl-z to suspend in multi-term shells."
   (interactive)
   (term-send-raw-string ""))
 
+;; Equivalent of alt-. in bash
+(defun term-tcsh-history ()
+  "Add the last argument of the last command at point in shell"
+  (interactive)
+  (term-send-raw-string "!!:$\c-[ "))
+
+;; Read the next character and send it as a raw string to multi-term
+(defun term-send-raw-control ()
+  "read a character and send it to multiterm."
+  (interactive)
+  (term-send-raw-string (string (read-event))))
+
+;; Setup multi-term with keybindings etc.
 (add-hook 'term-mode-hook
           (lambda ()
             (linum-mode -1) ; Disable line numbers
-            (add-to-list 'term-bind-key-alist '("C-c C-z" . term-send-ctrl-z))))
+            ; Disable common mappings so we can rebind a couple things
+            (common-keys-minor-mode -1)
+            ; Rebind the keybindings we actually want
+            (define-key term-mode-map (kbd "M-SPC") 'set-mark-command)
+            ; New bindings
+            (define-key term-raw-map (kbd "M-y") 'term-paste)
+            (define-key term-raw-map (kbd "C-c") 'term-send-raw-control)
+            (define-key term-raw-map (kbd "M-.") 'term-tcsh-history)))
+
+;; Faster M-x command
+(defalias 'mrem 'multi-term-remote)
 
 ;; SML stuff - copied from 15150
-;; this points to where SML happens to live on local
+;; This points to where SML happens to live on local
 (setq sml-program-name "/usr/bin/sml")
 (add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\)\\'" . sml-mode))
 
@@ -607,6 +670,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(comint-highlight-prompt ((t (:inherit minibuffer-prompt))))
- '(minibuffer-prompt ((t (:background "color-236" :foreground "white" :box (:line-width -1 :color "red" :style released-button) :weight bold)))))
-(put 'downcase-region 'disabled nil)
-(put 'upcase-region 'disabled nil)
+ '(minibuffer-prompt ((t (:background "color-236" :foreground "white" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
+ '(mode-line ((t (:background "gray30" :box (:line-width 1 :color "dark orchid") :family "Menlo")))))
+
+;; Disable graphical scroll bar and toolbar
+(toggle-scroll-bar -1)
+(tool-bar-mode -1)
