@@ -10,10 +10,21 @@ alias edit="emacs -nw"
 export EDITOR="emacs -nw"
 
 export PATH=$PATH:$HOME/bin:$HOME/home/bin:$HOME/.local/bin
+export PATH=$PATH:$HOME/intelFPGA_lite/18.0/quartus/bin
+export PATH=$PATH:$HOME/ghdl/bin
+
 CPPFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c++14" "-pedantic" "-g")
 CFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c11" "-pedantic" "-g")
 
 alias gst=" git status"
+alias gl=" git log"
+alias gc="git commit" # TIL gc is an installed tool for counting graph nodes
+alias gck="git checkout"
+alias gd="git diff"
+alias gdc="git diff --cached"
+alias ga="git add"
+alias glg=" git log --oneline --graph --decorate"
+
 alias smlnj="rlwrap sml"
 
 export PS1=" %{%F{red}%B%}%n%{%f%b%} | "  # " max | "
@@ -37,10 +48,10 @@ function mkcd(){
 alias ..="cd .."
 
 # NixOS things
-alias nixedit="sudo emacs -nw /etc/nixos/configuration.nix"
-alias nixswitch="sudo nixos-rebuild switch"
-alias nixtest="sudo nixos-rebuild test"
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/nix/var/nix/profiles/system/sw/lib
+#alias nixedit="sudo emacs -nw /etc/nixos/configuration.nix"
+#alias nixswitch="sudo nixos-rebuild switch"
+#alias nixtest="sudo nixos-rebuild test"
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/nix/var/nix/profiles/system/sw/lib
 
 
 if [[ $TERM == "dumb" ]]
@@ -66,7 +77,15 @@ else
     #     export TERM=xterm          # This makes control+arrows work better
     # fi
 
-    # Make ls and fg not clog up the history
+    # Make fg not clog up the history
     setopt histignorespace
-    # We also added a space in front of ls and fg above
+    # We also added a space in front of fg above
+
+    # List after changing directories
+    # https://stackoverflow.com/a/3964198
+    function list_dir() {
+        emulate -L zsh
+        ls
+    }
+    chpwd_functions=(${chpwd_functions[@]} "list_dir")
 fi
