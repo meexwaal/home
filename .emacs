@@ -58,6 +58,7 @@
       (format-time-string "%a %b %e, %Y" now)
       (quote face)
       (quote bold)))))
+ '(ido-auto-merge-work-directories-length -1)
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(jdee-global-classpath (quote ("." "out" "$CLASSPATH")))
@@ -106,7 +107,8 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+    (persp-mode autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+ '(persp-keymap-prefix "p")
  '(ring-bell-function (quote ignore))
  '(term-bind-key-alist
    (quote
@@ -160,7 +162,7 @@
 (define-key key-translation-map (kbd "C-M-i") (kbd "C-<up>"))
 (define-key key-translation-map (kbd "C-M-k") (kbd "C-<down>"))
 
-;; Credit: https://stackoverflow.com/a/683575/5135869
+;; Credit: https://stackoverflow.com/a/683575
 (defvar common-keys-minor-mode-map
   (let ((map (make-sparse-keymap)))
     ;; AltGr is mapped to control, which is weird
@@ -315,8 +317,19 @@
 (add-hook 'asm-mode-hook 'highlight-doxygen-mode)
 
 ;; Enable autopair for C and C++
-(add-hook 'c-mode-hook 'autopair-mode)
-(add-hook 'c++-mode-hook 'autopair-mode)
+;; (add-hook 'c-mode-hook 'autopair-mode)
+;; (add-hook 'c++-mode-hook 'autopair-mode)
+
+;;; @todo finish this
+;; ;; Change the header template
+;; ; Iterate through auto-insert-alist
+;; (dolist (elt auto-insert-alist)
+;;   ; If this elt is the header entry
+;;   (if (string= (cdr (nth 0 elt)) "C / C++ header")
+;;       ; Then find #endif and change it
+;;       ()
+;;     (nil))
+;;   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -432,6 +445,55 @@
 (global-set-key (kbd "C-o") 'ace-window)
 (global-set-key (kbd "C-k") 'avy-goto-word-or-subword-1)
 
+;; Revert buffer shortcut
+(global-set-key (kbd "H-r") 'revert-buffer)
+
+;; Align-regexp shortcuts
+(global-set-key (kbd "H-;") 'align-regexp) ; General case
+(defun align-c-comments ()
+  (interactive)
+  (align-regexp (region-beginning) (region-end) "\\(\\s-*\\)/"))
+(global-set-key (kbd "H-/") 'align-c-comments) ; Align /
+
+;; xref (jump to definition)
+(substitute-key-definition
+ 'xref-find-definitions 'xref-find-definitions-other-window global-map)
+;; xref moves around windows in an inconsistent way. We want the
+;; definition to open in the "next" window. However, if the reference
+;; is ambiguous, xref opens a buffer in the "next" window to let you
+;; pick, then opens the reference in the window after that. With only
+;; two windows, this replaces the source buffer with the definition
+;; and leaves the xref buffer on the screen. This is a janky, but
+;; mostly unobtrusive, fix. When we go to a reference from the xref
+;; buffer, do our best to reconfigure the buffers to how they were
+;; before, then change the xref buffer to the definition
+(defun xref-goto-xref-close ()
+  (interactive)
+  ;; Go to the reference
+  (xref-goto-xref)
+  (let ((defbuf (current-buffer)))
+    ;; Change this window back to what it previously showed.
+    ;; TODO this isn't always correct
+    (previous-buffer)
+
+    ;; Change to the xref window
+    (select-window (get-buffer-window "*xref*"))
+
+    ;; Change the buffer to the definition
+    (switch-to-buffer defbuf)
+    )
+
+  ;; Nuke the xref buffer
+  (kill-buffer "*xref*")
+  )
+(with-eval-after-load 'xref
+  (substitute-key-definition
+   'xref-goto-xref 'xref-goto-xref-close xref--xref-buffer-mode-map)
+  (substitute-key-definition
+   'xref-goto-xref 'xref-goto-xref-close xref--button-map) ;; Why, xmap, why?
+  )
+
+
 ;; Neotree
 ;(add-hook 'after-init-hook 'neotree-show) ; Show on startup
 ;(setq neo-autorefresh nil) ; (autorefresh breaks things in some version)
@@ -450,8 +512,7 @@
 
 ;; Hide show
 (add-hook 'prog-mode-hook 'hs-minor-mode)
-(global-set-key (kbd "M-H") 'hs-hide-block)
-(global-set-key (kbd "M-S") 'hs-show-block)
+(global-set-key (kbd "M-H") 'hs-toggle-hiding)
 
 ;; Undo tree
 (add-hook 'after-init-hook 'global-undo-tree-mode)
@@ -459,9 +520,9 @@
 (global-set-key (kbd "M-f") 'undo-tree-undo)
 
 ;; Rust setup
-(defun my-rust-config ()
-  (local-set-key (kbd "C-c C-v") 'rust-compile))
-(add-hook 'rust-mode-hook 'my-rust-config)
+;; (defun my-rust-config ()
+;;   (local-set-key (kbd "C-c C-v") 'rust-compile))
+;; (add-hook 'rust-mode-hook 'my-rust-config)
 
 ;; magit
 (global-set-key (kbd "C-x g") 'magit-status)
@@ -485,6 +546,50 @@
 ;; Set the basic indentation for Java source files to two spaces.
 (add-hook 'jdee-mode-hook '(lambda () (setq c-basic-offset 2)))
 
+;; persp-mode
+(with-eval-after-load "persp-mode"
+  ;; Recommended settings
+  (setq wg-morph-on nil)
+  (setq persp-autokill-buffer-on-remove 'kill-weak)
+
+  ;; Make switching buffers use current perspective
+  ;; (setq persp-hook-up-emacs-buffer-completion t) ;; OBSOLETE
+  (persp-set-read-buffer-function t)
+  (persp-set-ido-hooks t)
+
+  (defvar persp-mode-functions-to-advise
+    '(next-buffer
+      previous-buffer
+      ido-switch-buffer
+      )
+    "List of functions which need additional advising when using `persp-mode'.")
+
+  (defun persp-mode-wrapper (wrapped-buffer-command &rest r)
+    "Wrapper for commands which need advising for use with `persp-mode'.
+Only for use with `advice-add'."
+    (with-persp-buffer-list () (apply wrapped-buffer-command r)))
+
+  (defun persp-mode-setup-advice ()
+    "Adds or removes advice on functions in `persp-mode-functions-to-advise'."
+    (cl-loop for func in persp-mode-functions-to-advise
+             do (if persp-mode
+                    (advice-add func :around #'persp-mode-wrapper)
+                  (advice-remove func #'persp-mode-wrapper))))
+
+  (add-hook 'persp-mode-hook #'persp-mode-setup-advice)
+
+  ;; Turn off automatically opening or saving anything
+  (setq persp-auto-save-opt 0)
+  (setq persp-auto-resume-time -1)
+  (setq persp-auto-save-persps-to-their-file nil)
+
+  ;; Add buffers without files (like dired) to perspective
+  (setq persp-add-buffer-on-after-change-major-mode t)
+  ;; (add-hook 'persp-common-buffer-filter-functions
+  ;;           ;; TODO there is also `persp-add-buffer-on-after-change-major-mode-filter-functions'
+  ;;           #'(lambda (b) (string-prefix-p "*" (buffer-name b))))
+  )
+
 ;; Irony mode config
 ;; Setup instructions (from https://github.com/Sarcasm/irony-mode):
 ;; sudo apt install libclang-dev cmake
@@ -492,23 +597,22 @@
 ;(add-hook 'c++-mode-hook 'irony-mode)
 ;(add-hook 'c-mode-hook 'irony-mode)
 ;(add-hook 'objc-mode-hook 'irony-mode)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
+;; (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
 ;; Autocomplete
 ;(add-hook 'after-init-hook 'global-company-mode)
 ;(setq company-global-modes '(not text-mode))
 ;(add-hook 'c++-mode-hook 'company-mode)
 ;(add-hook 'c-mode-hook 'company-mode)
-(with-eval-after-load 'company
-  (setq company-idle-delay nil)                  ; Don't autocomplete
-  (global-set-key (kbd "M-.") 'company-complete) ; Complete when key pressed
-  (setq company-show-numbers t)                  ; Number suggestions
-  (setq company-selection-wrap-around t)         ; Wrap in suggestion menu
-  (setq company-tooltip-limit 20)                ; Max number of suggestions
-  (setq completion-styles ; Make company complete substrings and initials (this may not be supported by irony I'm not sure)
-        '(basic partial-completion emacs22 substring initials))
-  )
+;; (with-eval-after-load 'company
+;;   (setq company-idle-delay nil)                  ; Don't autocomplete
+;;   (global-set-key (kbd "M-.") 'company-complete) ; Complete when key pressed
+;;   (setq company-show-numbers t)                  ; Number suggestions
+;;   (setq company-selection-wrap-around t)         ; Wrap in suggestion menu
+;;   (setq company-tooltip-limit 20)                ; Max number of suggestions
+;;   (setq completion-styles ; Make company complete substrings and initials (this may not be supported by irony I'm not sure)
+;;         '(basic partial-completion emacs22 substring initials))
+;;   )
 
 ;; Change company colors
 ;; (require 'color)
@@ -525,10 +629,10 @@
 ;(add-hook 'c-mode-hook 'flycheck-mode)
 ;(setq flycheck-python-pylint-executable "pylint3") ; Use pylint3
 ;(add-hook 'python-mode-hook 'flycheck-mode)
-(with-eval-after-load 'flycheck
-  (setq flycheck-display-errors-delay 0.1) ; Small delay (plays better with eldoc)
-  (setq flycheck-check-syntax-automatically '(mode-enabled save)) ; Only show on save
-  )
+;; (with-eval-after-load 'flycheck
+;;   (setq flycheck-display-errors-delay 0.1) ; Small delay (plays better with eldoc)
+;;   (setq flycheck-check-syntax-automatically '(mode-enabled save)) ; Only show on save
+;;   )
 
 ;; Displaying the arguments of a function (ELDoc)
 ;(add-hook 'irony-mode-hook 'irony-eldoc)
@@ -581,7 +685,71 @@
 ;; (add-hook 'c-mode-hook 'my-c-mode-backend-hook)
 ;; (add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
 
+;; For some reason line numbers really slow down doc view
 (add-hook 'doc-view-mode-hook '(lambda () (linum-mode -1)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;           GDB setup           ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Custom many-windows setup
+;; From https://stackoverflow.com/a/41326527
+(setq gdb-many-windows nil)
+
+;; Close all windows and create desired layout
+(defun set-gdb-layout(&optional cur-buffer)
+  (if (not cur-buffer)
+      (setq cur-buffer (window-buffer (selected-window)))) ;; save current buffer
+
+  ;; from http://stackoverflow.com/q/39762833
+  (set-window-dedicated-p (selected-window) nil) ;; unset dedicate state if needed
+  (switch-to-buffer gud-comint-buffer)
+  (delete-other-windows) ;; clean all
+
+  (let* (
+         (w-source (selected-window)) ;; left top
+         (w-gdb (split-window w-source nil 'right)) ;; right bottom
+         (w-locals (split-window w-gdb nil 'above)) ;; right middle bottom
+         (w-stack (split-window w-locals nil 'above)) ;; right middle top
+         (w-breakpoints (split-window w-stack nil 'above)) ;; right top
+         (w-io (split-window w-source (floor(* 0.9 (window-body-height)))
+                             'below)) ;; left bottom
+         )
+    (set-window-buffer w-io (gdb-get-buffer-create 'gdb-inferior-io))
+    (set-window-dedicated-p w-io t)
+    (set-window-buffer w-breakpoints (gdb-get-buffer-create 'gdb-breakpoints-buffer))
+    (set-window-dedicated-p w-breakpoints t)
+    (set-window-buffer w-locals (gdb-get-buffer-create 'gdb-locals-buffer))
+    (set-window-dedicated-p w-locals t)
+    (set-window-buffer w-stack (gdb-get-buffer-create 'gdb-stack-buffer))
+    (set-window-dedicated-p w-stack t)
+
+    (set-window-buffer w-gdb gud-comint-buffer)
+
+    (select-window w-source)
+    (set-window-buffer w-source cur-buffer)
+    ))
+
+;; When gdb runs, save layout then install custom layout
+(defadvice gdb (around args activate)
+  "Change the way to gdb works."
+  ;; To restore: (set-window-configuration global-config-editing)
+  (setq global-config-editing (current-window-configuration))
+  (let (
+        (cur-buffer (window-buffer (selected-window))) ;; save current buffer
+        )
+    ad-do-it
+    (set-gdb-layout cur-buffer))
+  )
+
+;; When gdb closes, restore old layout
+(defadvice gdb-reset (around args activate)
+  "Change the way to gdb exit."
+  ad-do-it
+  (set-window-configuration global-config-editing))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -619,7 +787,11 @@
 (defun term-tcsh-history ()
   "Add the last argument of the last command at point in shell"
   (interactive)
-  (term-send-raw-string "!!:$\c-[ "))
+  ; This is a wacky one. Multi-term is a bit odd about this, and this
+  ; sequence both fills in the last arg of the last command and spits
+  ; some of the characters in the sequence out. The \b's delete those.
+  (term-send-raw-string "!!:$\c-[ \b\b\b\b")
+  )
 
 ;; Read the next character and send it as a raw string to multi-term
 (defun term-send-raw-control ()
@@ -671,7 +843,8 @@
  ;; If there is more than one, they won't work right.
  '(comint-highlight-prompt ((t (:inherit minibuffer-prompt))))
  '(minibuffer-prompt ((t (:background "color-236" :foreground "white" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
- '(mode-line ((t (:background "gray30" :box (:line-width 1 :color "dark orchid") :family "Menlo")))))
+ '(mode-line ((t (:background "gray30" :box (:line-width 1 :color "dark orchid") :family "Menlo"))))
+ '(persp-face-lighter-buffer-not-in-persp ((t (:background "dark gray" :foreground "#444444" :weight bold)))))
 
 ;; Disable graphical scroll bar and toolbar
 (toggle-scroll-bar -1)
