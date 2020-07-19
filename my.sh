@@ -78,8 +78,19 @@ else
     # fi
 
     # Make fg not clog up the history
-    setopt histignorespace
+    setopt hist_ignore_space
     # We also added a space in front of fg above
+
+    # If we run out of space, remove duplicates first
+    setopt hist_expire_dups_first
+
+    # When searching history, skip duplicates. Unfortunately, doesn't apply
+    # to "up"ing through history, only searching.
+    setopt hist_find_no_dups
+
+    # For that, we have to modify what we save. Don't save a command if it
+    # is a duplicate of the previous one
+    setopt hist_ignore_dups
 
     # List after changing directories
     # https://stackoverflow.com/a/3964198
