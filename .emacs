@@ -162,6 +162,19 @@
 (define-key key-translation-map (kbd "C-M-i") (kbd "C-<up>"))
 (define-key key-translation-map (kbd "C-M-k") (kbd "C-<down>"))
 
+;; Allow backward- and forward-list functions to break out of
+;; containing expressions
+(defun my-backward-list ()
+  (interactive)
+  (condition-case nil (backward-list)
+    (error (backward-up-list)))
+  )
+(defun my-forward-list ()
+  (interactive)
+  (condition-case nil (forward-list)
+    (error (up-list)))
+  )
+
 ;; Credit: https://stackoverflow.com/a/683575
 (defvar common-keys-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -176,8 +189,8 @@
     ;; (define-key map (kbd "C-]") 'query-replace-regexp) ; Functionally C-5
     ;; (define-key map (kbd "C-^") 'delete-indentation)   ; Functionally C-6
     (define-key map (kbd "M-u") 'universal-argument)
-    (define-key map (kbd "M-N") 'forward-list)
-    (define-key map (kbd "M-P") 'backward-list)
+    (define-key map (kbd "M-N") 'my-forward-list)
+    (define-key map (kbd "M-P") 'my-backward-list)
 
     ;; Other
     (define-key map (kbd "M-a") 'back-to-indentation)
@@ -212,6 +225,12 @@
 
 ;; Comment out a line
 (global-set-key (kbd "M-'") 'comment-line)
+
+;; Weird thing to have to override
+(setq sentence-end-double-space nil)
+
+;; If kill-line is invoked at the start of the line, kill the whole line
+(setq kill-whole-line t)
 
 ;; Line numbers
 (global-linum-mode t)
@@ -315,6 +334,7 @@
 (add-hook 'c-mode-hook 'highlight-doxygen-mode)
 (add-hook 'c++-mode-hook 'highlight-doxygen-mode)
 (add-hook 'asm-mode-hook 'highlight-doxygen-mode)
+(add-hook 'vhdl-mode-hook 'highlight-doxygen-mode)
 
 ;; Enable autopair for C and C++
 ;; (add-hook 'c-mode-hook 'autopair-mode)
@@ -679,11 +699,93 @@ Only for use with `advice-add'."
 (add-hook 'python-mode-hook 'my-python-mode-backend-hook)
 
 (defun my-c-mode-backend-hook ()
+  (setq c-block-comment-prefix "*")     ;; Prettier multi-line comments
   ;(add-to-list 'company-backends 'company-irony)
   ;(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
   )
-;; (add-hook 'c-mode-hook 'my-c-mode-backend-hook)
+(add-hook 'c-mode-hook 'my-c-mode-backend-hook)
 ;; (add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
+
+;; VHDL Set-up
+(setq vhdl-intelligent-tab nil)         ;; Really we just want TAB to indent
+
+(defun vhdl-beautify-block ()
+  "Beautify the block containing the point"
+  (interactive)
+  (save-excursion
+    (vhdl-beautify-region (vhdl-beginning-of-block) (vhdl-end-of-block)))
+  )
+
+(defun my-vhdl-beautify (beginning end)
+  "Beautify surrounding contiguous lines, or the region if selected"
+  ;; vhdl-beautify-block was right in some cases, but too big in many.
+  ;; Instead, just do the non-empty lines before and after point.
+  (interactive "r")  ; Uses region
+  (if (use-region-p) ; If region is active, beautify, else find a block
+      (vhdl-beautify-region beginning end)
+      (let ((block-begin
+             (save-excursion ; Find an empty line or the end of a
+                             ; comment on a line with no start comment
+                             ; (@todo regexp is stricter than it
+                             ; should be, and only works for /* */)
+               (search-backward-regexp "^[[:space:]]*\\([^/]*\\*/\\)?$")
+               (next-line)
+               (point)))
+            (block-end
+             (save-excursion
+               (search-forward-regexp "^[[:space:]]*\\([^/]*\\*/\\)?$"))))
+        (vhdl-beautify-region block-begin block-end)))
+  )
+
+;; TODO:
+; M-q (fill-paragraph or adaptive fill) treats /* */ badly
+; auto-indent obo after first line of /* */
+; forward-list equivalent with begin/end
+; Something like auto-alignment: https://stackoverflow.com/a/16474716
+; vhdl-beautify-region is dank, bind it or something
+; Holy shit we're a big fan of automatic testbench generation: https://electronics.stackexchange.com/a/220770
+; And port copying in general could be prime for components
+; If process(all) isn't supported, vhdl-mode can auto-update
+
+;; Align the innards and end of begin-end a block relative to the
+;; start of the line with "begin", instead of the start of "begin"
+;; itself. Yoink the result of the regular syntactic context function
+;; and fudge the positions of "begin"s and "end"s.
+(advice-add 'vhdl-get-syntactic-context :around
+          #'(lambda (old-get-context)
+              ;; Map the result of the old context association list
+              (mapcar (lambda (langelem)
+                        (let* ((langelem-name (car langelem))
+                               (langelem-pos  (cdr langelem)))
+                          ;; If this element is the beginning or end of a block,
+                          (if (or (eq langelem-name 'statement-block-intro)
+                                  (eq langelem-name 'block-close))
+                              ;; Change the position (in cdr);
+                              (let ((langelem-boi (save-excursion
+                                                   (goto-char langelem-pos)
+                                                   (vhdl-point 'boi))))
+                                (cons langelem-name langelem-boi))
+                              ;; Otherwise, don't change the element
+                              langelem)))
+                      (funcall old-get-context))))
+
+(defun my-vhdl-mode-backend-hook ()
+  (setq vhdl-stutter-mode t)            ;; Make some characters easier to type
+  (setq comment-start "/* ")            ;; Use C-style comments
+  (setq comment-end   " */")
+
+  ;; Don't indent the closing paren of an arglist
+  (vhdl-set-offset 'arglist-close 0)
+
+  (local-set-key (kbd "C-<tab>") 'my-vhdl-beautify)
+
+  ;; Electric indent is annoying, and I don't need the caps fixing
+  (local-set-key (kbd "<return>") 'newline-and-indent)
+  ;; Abbrev expansion might be good, but for now, stop messing with comments
+  (local-unset-key (kbd "SPC"))
+  )
+(add-hook 'vhdl-mode-hook 'my-vhdl-mode-backend-hook)
+
 
 ;; For some reason line numbers really slow down doc view
 (add-hook 'doc-view-mode-hook '(lambda () (linum-mode -1)))
@@ -773,6 +875,7 @@ Only for use with `advice-add'."
 (setq auto-insert-query nil)
 (setq auto-insert-directory "~/home/templates/")
 (define-auto-insert "\.sv" "template.sv")
+(define-auto-insert "\.vhd" "template.vhd")
 
 ;; Multi-term mode
 ;; See: https://github.com/rlister/emacs.d/blob/master/lisp/multi-term-cfg.el

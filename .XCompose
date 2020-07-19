@@ -404,6 +404,7 @@
 
 <Multi_key> <P> <P>              	: "¶"   paragraph # PILCROW SIGN
 
+<Multi_key> <n> <o>			: "№" numerosign # NUMERO SIGN
 <Multi_key> <N> <o>			: "№" numerosign # NUMERO SIGN
 <Multi_key> <N> <O>			: "№" numerosign # NUMERO SIGN
 <Multi_key> <Cyrillic_EN> <Cyrillic_o>	: "№" numerosign # NUMERO SIGN
