@@ -107,7 +107,7 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (persp-mode autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+    (tree-mode persp-mode autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
  '(persp-keymap-prefix "p")
  '(ring-bell-function (quote ignore))
  '(term-bind-key-alist
@@ -945,7 +945,7 @@ Only for use with `advice-add'."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(comint-highlight-prompt ((t (:inherit minibuffer-prompt))))
- '(minibuffer-prompt ((t (:background "color-236" :foreground "white" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
+ '(minibuffer-prompt ((t (:background nil :foreground "white" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
  '(mode-line ((t (:background "gray30" :box (:line-width 1 :color "dark orchid") :family "Menlo"))))
  '(persp-face-lighter-buffer-not-in-persp ((t (:background "dark gray" :foreground "#444444" :weight bold)))))
 

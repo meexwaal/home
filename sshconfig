@@ -1,5 +1,5 @@
 Host andrew
-     HostName unix6.andrew.cmu.edu
+     HostName unix.andrew.cmu.edu
      User msjohnso
 
 Host ece
@@ -13,6 +13,10 @@ Host linuxece
      User msjohnso
 
 Host cclub
+     HostName msjohnso.club.cc.cmu.edu
+     User msjohnso
+
+Host cclub-unix
      HostName unix.club.cc.cmu.edu
      User msjohnso
 
