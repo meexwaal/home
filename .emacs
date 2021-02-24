@@ -873,7 +873,7 @@ Only for use with `advice-add'."
 ;; Load templates
 (auto-insert-mode)
 (setq auto-insert-query nil)
-(setq auto-insert-directory "~/home/templates/")
+(setq auto-insert-directory "~/home/emacs/templates/")
 (define-auto-insert "\.sv" "template.sv")
 (define-auto-insert "\.vhd" "template.vhd")
 
