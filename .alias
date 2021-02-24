@@ -1,0 +1,22 @@
+# Common aliases
+
+alias ls='ls --color=auto --hide="*~"'
+alias la="ls -a"
+alias l="ls -alh"
+alias fg=" fg"
+alias ..="cd .."
+
+# Git
+alias gst=" git status"
+alias gl=" git log"
+alias gc="git commit" # TIL gc is an installed tool for counting graph nodes
+alias gco="git checkout"
+alias gd="git diff"
+alias gdc="git diff --cached"
+alias ga="git add"
+alias gau="git add -u"
+alias glg=" git log --oneline --graph --decorate"
+
+# CMU
+alias smlnj="rlwrap sml"
+alias msj="ssh andrew"
