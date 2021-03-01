@@ -1,13 +1,14 @@
 # Common aliases
 
 alias ls='ls --color=auto --hide="*~"'
-alias la="ls -a"
-alias l="ls -alh"
+alias la="ls -aF"
+alias l="ls -alhF"
 alias fg=" fg"
 alias ..="cd .."
 
 # Git
-alias gst=" git status"
+alias gst=" git status --untracked-files=no --ignore-submodules"
+alias gstv=" git status" # "verbose"
 alias gl=" git log"
 alias gc="git commit" # TIL gc is an installed tool for counting graph nodes
 alias gco="git checkout"
@@ -16,6 +17,10 @@ alias gdc="git diff --cached"
 alias ga="git add"
 alias gau="git add -u"
 alias glg=" git log --oneline --graph --decorate"
+alias gps="git push"
+alias gpsh="git push"
+alias gpl="git pull"
+alias gpll="git pull"
 
 # CMU
 alias smlnj="rlwrap sml"
