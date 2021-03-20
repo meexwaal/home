@@ -22,50 +22,60 @@ then
     done
 fi
 
-# If ~/.bashrc exists, is a regular file, and is non-empty
-if [ -f ~/.bashrc -a -s ~/.bashrc ]
-then
-    >&2 echo "Move or modify existing .bashrc?"
-    select c in "Modify" "Move" "Show" "Skip"; do
-        case $c in
-            Modify )
-                # Prepend the modifications to the existing .bashrc
-                if [ -e ~/.bashrc.tmp ]
-                then
-                    >&2 echo "File ~/.bashrc.tmp exists. Aborting."
-                    exit 1
-                fi
-                cp $HOME_DIR/template/.bashrc ~/.bashrc.tmp
-                cat ~/.bashrc >> ~/.bashrc.tmp
-                mv ~/.bashrc.tmp ~/.bashrc
-                break;;
+function setup_file {
+    local FILE=$1
+    local LOAD_SYNTAX="$2"
 
-            Move )
-                # Move .bashrc to .bashrc.orig and source it in the new .bashrc
-                if [ -e ~/.bashrc.orig ]
-                then
-                    >&2 echo "File ~/.bashrc.orig exists. Aborting."
-                    exit 1
-                fi
-                mv -i ~/.bashrc ~/.bashrc.orig
-                cp $HOME_DIR/template/.bashrc ~/.bashrc
-                echo "source ~/.bashrc.orig" >> ~/.bashrc
-                break;;
+    # If ~/$FILE exists, is a regular file, and is non-empty
+    if [ -f ~/$FILE -a -s ~/$FILE ]
+    then
+        >&2 echo "Move or modify existing $FILE?"
+        select c in "Modify" "Move" "Show" "Skip"; do
+            case $c in
+                Modify )
+                    # Prepend the modifications to the existing ~/$FILE
+                    local TMP_FILE=~/$FILE.tmp
+                    if [ -e $TMP_FILE ]
+                    then
+                        >&2 echo "File $TMP_FILE exists. Aborting."
+                        exit 1
+                    fi
+                    cp $HOME_DIR/template/$FILE $TMP_FILE
+                    cat ~/$FILE >> $TMP_FILE
+                    mv $TMP_FILE ~/$FILE
+                    break;;
 
-            Show )
-                less ~/.bashrc
-                # No break, so the select will loop and ask for another input
-                ;;
+                Move )
+                    # Move $FILE to $FILE.orig and load it in the new $FILE
+                    local ORIG_FILE=~/$FILE.orig
+                    if [ -e $ORIG_FILE ]
+                    then
+                        >&2 echo "File $ORIG_FILE exists. Aborting."
+                        exit 1
+                    fi
+                    mv -i ~/$FILE $ORIG_FILE
+                    cp $HOME_DIR/template/$FILE ~/$FILE
+                    echo "$LOAD_SYNTAX" >> ~/$FILE
+                    break;;
 
-            Skip )
-                >&2 echo "Skipping .bashrc setup"
-                break;;
-        esac
-    done
-else
-    >&2 echo "Populating .bashrc"
-    cp $HOME_DIR/template/.bashrc ~/.bashrc
-fi
+                Show )
+                    less ~/$FILE
+                    # No break, so the select will loop and ask for another input
+                    ;;
+
+                Skip )
+                    >&2 echo "Skipping $FILE setup"
+                    break;;
+            esac
+        done
+    else
+        >&2 echo "Populating ~/$FILE"
+        cp $HOME_DIR/template/$FILE ~/$FILE
+    fi
+}
+
+setup_file .bashrc "source ~/.bashrc.orig"
+setup_file .emacs "(load-file \"~/.emacs.orig\")"
 
 mkdir -p $STATE_DIR
 echo 1 > $STATE_DIR/setup
