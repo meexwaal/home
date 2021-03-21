@@ -1,4 +1,3 @@
-
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
@@ -6,36 +5,6 @@
 (package-initialize)
 
 (require 'package)
-;; My packages:
-;; 0xc
-;; 2048-game
-;; ace-window
-;; auctex
-;; avy
-;; browse-kill-ring
-;; company
-;; company-irony
-;; dash
-;; epl
-;; flycheck
-;; flycheck-irony
-;; git-commit
-;; irony
-;; irony-eldoc
-;; jdee
-;; json-mode
-;; json-reformat
-;; json-snatcher
-;; jump-char
-;; key-chord
-;; magit
-;; magit-popup
-;; neotree
-;; rust-mode
-;; rust-playground
-;; undo-tree
-;; web-mode
-;; yasnippet
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -107,7 +76,7 @@
      ("melpa" . "http://melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (tree-mode persp-mode autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char nixos-options nix-mode jdee web-mode undo-tree neotree magit key-chord browse-kill-ring ace-window)))
+    (plur ws-butler tree-mode persp-mode autopair highlight-doxygen cuda-mode 0xc 2048-game avy company company-irony flycheck flycheck-irony irony irony-eldoc json-mode json-reformat json-snatcher multi-term yasnippet markdown-mode tldr matlab-mode jump-char undo-tree neotree browse-kill-ring ace-window)))
  '(persp-keymap-prefix "p")
  '(ring-bell-function (quote ignore))
  '(term-bind-key-alist
@@ -117,8 +86,6 @@
      ("C-n" . next-line)
      ("C-s" . isearch-forward)
      ("M-r" . isearch-backward)
-     ("M-p" . term-send-up)
-     ("M-n" . term-send-down)
      ("C-h" . term-send-backward-kill-word)
      ("M-DEL" . term-send-backward-kill-word)
      ("<C-left>" . term-send-backward-word)
@@ -139,18 +106,16 @@
  '(verilog-indent-level-declaration 2)
  '(verilog-indent-level-module 2))
 
+;; If any packages in package-selected-packages aren't installed, install them
+(when (seq-remove #'package-installed-p package-selected-packages)
+  (package-refresh-contents)
+  (package-install-selected-packages))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
 ;;      Common Keybindings       ;;
 ;;                               ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Mac keys
-;; https://www.emacswiki.org/emacs/EmacsForMacOS#toc31
-;; (setq mac-command-modifier 'meta)
-;; (setq mac-right-command-modifier 'control)
-;; (setq mac-control-modifier 'super)
 
 ;; Move arrow keys
 (define-key key-translation-map (kbd "M-j") (kbd "<left>"))
@@ -245,6 +210,9 @@
 ;; Don't ask when reverting buffers
 (setq revert-without-query (list ".*"))
 
+;; Delete selected text upon typing
+(delete-selection-mode 1)
+
 ;; Disable asking yes-or-no for certain functions
 ;; (defadvice revert-buffer (around auto-confirm compile activate)
 ;;   (flet ((yes-or-no-p (&rest args) t) (y-or-n-p (&rest args) t)) ad-do-it))
@@ -305,16 +273,21 @@
     (message "multi-term-remote not defined")))
 
 ;; Highlight bad whitespace and long lines
+(setq-default whitespace-line-column 100)
 (setq whitespace-style '(face tabs lines-tail trailing)) ;; empty
 (global-whitespace-mode t)
 
+;; Let paragraph fill use the full 80 standard columns
+(setq-default fill-column 80)
+
 ;; Remove trailing whitespace on save
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+;; ws-butler only trims lines modified since save, which is better for
+;; shared codebases
+(ws-butler-global-mode)
+;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; Spacing
 (setq-default indent-tabs-mode nil) ; Don't use tabs
-(add-hook 'c-mode-hook '(lambda () (setq c-basic-offset 4)))
-(add-hook 'c++-mode-hook '(lambda () (setq c-basic-offset 4)))
 
 ;; ido-mode is neat
 (ido-mode 1)
@@ -350,6 +323,31 @@
 ;;       ()
 ;;     (nil))
 ;;   )
+
+;; Jump to next/previous row with a non-space character in the current column
+;; Source: https://emacs.stackexchange.com/a/22094
+(defun next-line-non-empty-column (arg)
+  "Find next line, on the same column, skipping those that would
+end up leaving point on a space or newline character."
+  (interactive "p")
+  (let* ((hpos (- (point) (point-at-bol)))
+         (re (format "^.\\{%s\\}[^\n ]" hpos)))
+    (cond ((> arg 0)
+           (forward-char 1) ; don't match current position (can only happen at column 0)
+           (re-search-forward re))
+          ((< arg 0)
+           (forward-char -1)           ; don't match current position.
+           (re-search-backward re)
+           (goto-char (match-end 0))))
+    ;; now point is after the match, let's go back one column.
+    (forward-char -1)))
+(defun previous-line-non-empty-column (arg)
+  ""
+  (interactive "p")
+  (next-line-non-empty-column (- arg)))
+;; Feels like a similar form to C-x SPC, rectangle-mark-mode
+(global-set-key (kbd "C-x <down>") 'next-line-non-empty-column)
+(global-set-key (kbd "C-x <up>") 'previous-line-non-empty-column)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -407,8 +405,8 @@
 
 (global-set-key (kbd "M-DEL") 'my-delete-back)
 (global-set-key (kbd "C-<backspace>") 'my-delete-back)
-(global-set-key (kbd "C-h") 'my-delete-back) ; C-h = C-backspace
-(global-set-key (kbd "M-h") 'kill-word)
+(global-set-key (kbd "M-h") 'my-delete-back)
+(global-set-key (kbd "C-h") 'backward-delete-char-untabify)
 
 ;; Disable all minor modes for quicker pasting
 (defun paste-disable-active-minor-modes ()
@@ -452,7 +450,6 @@
 (eval-after-load 'LaTeX-mode
   (local-set-key (kbd "C-c C-j") 'compile-latex))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
 ;;         Package config        ;;
@@ -464,6 +461,8 @@
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "C-o") 'ace-window)
 (global-set-key (kbd "C-k") 'avy-goto-word-or-subword-1)
+(global-set-key (kbd "M-n") 'next-buffer)
+(global-set-key (kbd "M-p") 'previous-buffer)
 
 ;; Revert buffer shortcut
 (global-set-key (kbd "H-r") 'revert-buffer)
@@ -699,12 +698,26 @@ Only for use with `advice-add'."
 (add-hook 'python-mode-hook 'my-python-mode-backend-hook)
 
 (defun my-c-mode-backend-hook ()
-  (setq c-block-comment-prefix "*")     ;; Prettier multi-line comments
+  ;; Use C-mode's default block comments. C++ doesn't use these by default.
+  (setq comment-start       "/* "
+        comment-end         " */"
+        comment-multi-line  t
+        comment-padding     " "
+        comment-style       'indent
+        comment-continue    " * "
+        comment-empty-lines nil)
+
+  ;; Prettier multi-line comments
+  (setq c-block-comment-prefix "*")
+
+  (setq c-default-style "bsd")
+  (setq c-basic-offset 4)
+
   ;(add-to-list 'company-backends 'company-irony)
   ;(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
   )
 (add-hook 'c-mode-hook 'my-c-mode-backend-hook)
-;; (add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
+(add-hook 'c++-mode-hook 'my-c-mode-backend-hook)
 
 ;; VHDL Set-up
 (setq vhdl-intelligent-tab nil)         ;; Really we just want TAB to indent
@@ -777,7 +790,7 @@ Only for use with `advice-add'."
   ;; Don't indent the closing paren of an arglist
   (vhdl-set-offset 'arglist-close 0)
 
-  (local-set-key (kbd "C-<tab>") 'my-vhdl-beautify)
+  (local-set-key (kbd "H-<tab>") 'my-vhdl-beautify)
 
   ;; Electric indent is annoying, and I don't need the caps fixing
   (local-set-key (kbd "<return>") 'newline-and-indent)
@@ -789,7 +802,6 @@ Only for use with `advice-add'."
 
 ;; For some reason line numbers really slow down doc view
 (add-hook 'doc-view-mode-hook '(lambda () (linum-mode -1)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
@@ -880,6 +892,13 @@ Only for use with `advice-add'."
 ;; Multi-term mode
 ;; See: https://github.com/rlister/emacs.d/blob/master/lisp/multi-term-cfg.el
 
+(defun multi-term-named (name)
+  "Open up a new local terminal with a given name"
+  (interactive "sName: ")
+  (multi-term)
+  (rename-buffer (concat "*" name "-terminal*")))
+(defalias 'mtn 'multi-term-named)
+
 ;; Deprecated in favor of term-send-raw-control
 (defun term-send-ctrl-z ()
   "Allow using ctrl-z to suspend in multi-term shells."
@@ -902,15 +921,30 @@ Only for use with `advice-add'."
   (interactive)
   (term-send-raw-string (string (read-event))))
 
+(defun term-toggle-mode ()
+  "Switch terminal between line and char mode."
+  (interactive)
+  (if (and (boundp 'term-current-mode) (eq term-current-mode 'line))
+      (progn
+        (setq-local term-current-mode 'char)
+        (term-char-mode))
+      (progn
+        (setq-local term-current-mode 'line)
+        (term-line-mode))))
+
 ;; Setup multi-term with keybindings etc.
 (add-hook 'term-mode-hook
           (lambda ()
             (linum-mode -1) ; Disable line numbers
             ; Disable common mappings so we can rebind a couple things
             (common-keys-minor-mode -1)
-            ; Rebind the keybindings we actually want
+            ;; Bindings in line mode
+            (define-key term-mode-map (kbd "M-m") 'term-toggle-mode)
             (define-key term-mode-map (kbd "M-SPC") 'set-mark-command)
-            ; New bindings
+            (define-key term-mode-map (kbd "M-n") 'next-buffer)
+            (define-key term-mode-map (kbd "M-p") 'previous-buffer)
+            ;; Bindings in char mode
+            (define-key term-raw-map (kbd "M-m") 'term-toggle-mode)
             (define-key term-raw-map (kbd "M-y") 'term-paste)
             (define-key term-raw-map (kbd "C-c") 'term-send-raw-control)
             (define-key term-raw-map (kbd "M-.") 'term-tcsh-history)))
