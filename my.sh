@@ -40,14 +40,73 @@ export WORDCHARS="*?[]~&;!#$%^(){}<>" # Chars that are treated as words
 
 eval $(dircolors -b $HOME_DIR/.dircolors)
 
-function mkcd(){
+mkcd () {
   if mkdir $1; then
     cd $1
   fi
 }
 
+pysource () {
+    if [[ $# == 0 ]]
+    then
+        # With no argument, look for any sub-directory with "env" in its name.
+        files=( *env*/bin/activate )
+    elif [[ $# == 1 && "$1" != "-h" ]]
+    then
+        # With one argument, strip one trailing / (if present) and look for any
+        # sub-directory which has the argument as a prefix.
+        files=( ${1%/}*/bin/activate )
+    else
+        echo "Find and source a python virtual environment." >&2
+        echo "Usage: $0 [directory prefix]" >&2
+        return 2
+    fi
+
+    if [[ ${#files[@]} == 1 ]]
+    then
+        # Bash uses 0-indexing, while zsh uses 1-indexing.
+        # Fortunately, singleton arrays evaluate to their only element in both.
+        if [[ -f $files ]]
+        then
+            echo "source $files"
+            source $files
+        else
+            echo "No envs found"
+            return 1
+        fi
+    else
+        echo "Multiple options:"
+        echo ${files[@]}
+        return 1
+    fi
+}
+
+f () {
+    if [[ $# == 2 ]]
+    then
+        find $1 -name "$2"
+    elif [[ $# == 1 ]]
+    then
+        find . -name "$1"
+    else
+        echo "Wrapper for find" >&2
+        echo "Usage: $0 [dir] pattern" >&2
+    fi
+}
+
+g () {
+    if [[ $# == 2 || $# == 1 ]]
+    then
+        grep -ir "$1" --exclude="*TAGS" $2
+    else
+        echo "Wrapper for grep -ir" >&2
+        echo "Usage: $0 pattern [dir]" >&2
+    fi
+}
+
+
 ################################################################################
-# Shell-specific
+# Terminal-specific
 
 case $TERM in
     dumb)
