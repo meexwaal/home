@@ -21,6 +21,8 @@ alias gps="git push"
 alias gpsh="git push"
 alias gpl="git pull"
 alias gpll="git pull"
+alias gpq="git pull -q"
+alias gfq="git fetch -q"
 
 # CMU
 alias smlnj="rlwrap sml"

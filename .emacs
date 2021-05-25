@@ -110,6 +110,7 @@
       (global-linum-mode t)
       (defalias 'my-line-numbers-mode 'linum-mode)))
 (add-hook 'doc-view-mode-hook '(lambda () (my-line-numbers-mode -1)))
+(add-hook 'image-mode-hook '(lambda () (my-line-numbers-mode -1)))
 
 ;; Nice things
 (column-number-mode)
