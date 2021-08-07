@@ -46,6 +46,15 @@ mkcd () {
   fi
 }
 
+# git checkout-interactive
+gci () {
+    select b in $(git for-each-ref --format='%(refname:short)' refs/heads/)
+    do
+        git checkout $b
+        break
+    done
+}
+
 pysource () {
     if [[ $# == 0 ]]
     then

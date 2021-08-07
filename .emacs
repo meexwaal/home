@@ -627,7 +627,7 @@ Only for use with `advice-add'."
   ;; Prettier multi-line comments
   (setq c-block-comment-prefix "*")
 
-  (setq c-default-style "bsd")
+  (c-set-style "bsd")
   (setq c-basic-offset 4)
 
   ;(add-to-list 'company-backends 'company-irony)
@@ -800,8 +800,8 @@ Only for use with `advice-add'."
 (auto-insert-mode)
 (setq auto-insert-query nil)
 (setq auto-insert-directory "~/home/emacs/templates/")
-(define-auto-insert "\.sv" "template.sv")
-(define-auto-insert "\.vhd" "template.vhd")
+(define-auto-insert "\\.sv" "template.sv")
+(define-auto-insert "\\.vhd" "template.vhd")
 
 ;; Multi-term mode
 ;; See: https://github.com/rlister/emacs.d/blob/master/lisp/multi-term-cfg.el

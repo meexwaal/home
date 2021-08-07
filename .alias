@@ -5,6 +5,7 @@ alias la="ls -aF"
 alias l="ls -alhF"
 alias fg=" fg"
 alias ..="cd .."
+alias -- -="cd -"
 
 # Git
 alias gst=" git status --untracked-files=no --ignore-submodules"
@@ -12,8 +13,8 @@ alias gstv=" git status" # "verbose"
 alias gl=" git log"
 alias gc="git commit" # TIL gc is an installed tool for counting graph nodes
 alias gco="git checkout"
-alias gd="git diff"
-alias gdc="git diff --cached"
+alias gd="git diff -w"
+alias gdc="git diff -w --cached"
 alias ga="git add"
 alias gau="git add -u"
 alias glg=" git log --oneline --graph --decorate"
