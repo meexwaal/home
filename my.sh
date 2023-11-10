@@ -15,7 +15,7 @@ if [ ! -f $TIME_FILE ] || \
    [ $CUR_TIME -ge $(($(cat $TIME_FILE) + $UPDATE_PERIOD)) ]
 then
     source $HOME_DIR/hook.sh && \
-        echo $CUR_TIME > $TIME_FILE
+       echo $CUR_TIME > $TIME_FILE
 fi
 
 ################################################################################
@@ -34,6 +34,9 @@ export PATH=$PATH:$HOME/bin:$HOME/.local/bin:$HOME_DIR/bin
 # CFLAGS=("-Wall" "-Wextra" "-Wshadow" "-Werror" "-std=c11" "-pedantic" "-g")
 
 export WORDCHARS="*?[]~&;!#$%^(){}<>" # Chars that are treated as words
+
+export HISTSIZE=20000
+export HISTFILESIZE=20000
 
 ################################################################################
 # Miscellany
@@ -99,7 +102,7 @@ f () {
         find . -name "$1"
     else
         echo "Wrapper for find" >&2
-        echo "Usage: $0 [dir] pattern" >&2
+        echo "Usage: f [dir] pattern" >&2
     fi
 }
 
@@ -109,7 +112,18 @@ g () {
         grep -ir "$1" --exclude="*TAGS" $2
     else
         echo "Wrapper for grep -ir" >&2
-        echo "Usage: $0 pattern [dir]" >&2
+        echo "Usage: g pattern [dir]" >&2
+    fi
+}
+
+watch-tmux () {
+    # TODO: kill watch when session is done, maybe even reattach
+    # ps --ppid $(tmux list-panes -F '#{pane_pid}' -t plat) && echo hi
+    if [[ $# == 1 ]]
+    then
+        watch "tmux capture-pane -pt $1 | tail -n 25"
+    else
+        echo "Usage: watch-tmux session-id"
     fi
 }
 

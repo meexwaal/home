@@ -24,6 +24,7 @@ alias gpl="git pull"
 alias gpll="git pull"
 alias gpq="git pull -q"
 alias gfq="git fetch -q"
+alias gg="git grep"
 
 # CMU
 alias smlnj="rlwrap sml"

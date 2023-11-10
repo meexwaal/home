@@ -33,16 +33,22 @@ function setup_file {
         select c in "Modify" "Move" "Show" "Skip"; do
             case $c in
                 Modify )
-                    # Prepend the modifications to the existing ~/$FILE
-                    local TMP_FILE=~/$FILE.tmp
-                    if [ -e $TMP_FILE ]
-                    then
-                        >&2 echo "File $TMP_FILE exists. Aborting."
-                        exit 1
-                    fi
-                    cp $HOME_DIR/template/$FILE $TMP_FILE
-                    cat ~/$FILE >> $TMP_FILE
-                    mv $TMP_FILE ~/$FILE
+                    # Modify the existing file to include this repo's template version.
+
+                    # # Prepend the modifications to the existing ~/$FILE
+                    # local TMP_FILE=~/$FILE.tmp
+                    # if [ -e $TMP_FILE ]
+                    # then
+                    #     >&2 echo "File $TMP_FILE exists. Aborting."
+                    #     exit 1
+                    # fi
+                    # cp $HOME_DIR/template/$FILE $TMP_FILE
+                    # cat ~/$FILE >> $TMP_FILE
+                    # mv $TMP_FILE ~/$FILE
+                    # break;;
+
+                    # Append the modifications to the existing ~/$FILE
+                    cat $HOME_DIR/template/$FILE >> ~/$FILE
                     break;;
 
                 Move )
