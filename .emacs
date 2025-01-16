@@ -30,19 +30,6 @@
 (define-key key-translation-map (kbd "C-M-i") (kbd "C-<up>"))
 (define-key key-translation-map (kbd "C-M-k") (kbd "C-<down>"))
 
-;; Allow backward- and forward-list functions to break out of
-;; containing expressions
-(defun my-backward-list ()
-  (interactive)
-  (condition-case nil (backward-list)
-    (error (backward-up-list)))
-  )
-(defun my-forward-list ()
-  (interactive)
-  (condition-case nil (forward-list)
-    (error (up-list)))
-  )
-
 ;; Credit: https://stackoverflow.com/a/683575
 (defvar common-keys-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -53,6 +40,7 @@
     (define-key map (kbd "C-y") 'yank-pop)
     (define-key map (kbd "M-y") 'yank)
     (define-key map (kbd "C-5") 'query-replace-regexp) ; Previously C-]
+    (define-key map (kbd "C-S-s") 'foreign-regexp/isearch-forward)
     (define-key map (kbd "C-6") 'delete-indentation)   ; Previously C-^
     ;; (define-key map (kbd "C-]") 'query-replace-regexp) ; Functionally C-5
     ;; (define-key map (kbd "C-^") 'delete-indentation)   ; Functionally C-6
@@ -113,8 +101,13 @@
 (add-hook 'image-mode-hook '(lambda () (my-line-numbers-mode -1)))
 
 ;; Nice things
+(line-number-mode)
 (column-number-mode)
 (show-paren-mode)
+
+;; Disable graphical scroll bar and toolbar
+(toggle-scroll-bar -1)
+(tool-bar-mode -1)
 
 ;; Ask y-or-n instead of yes-or-no
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -128,6 +121,8 @@
 ;; Disable asking yes-or-no for certain functions
 ;; (defadvice revert-buffer (around auto-confirm compile activate)
 ;;   (flet ((yes-or-no-p (&rest args) t) (y-or-n-p (&rest args) t)) ad-do-it))
+
+(desktop-save-mode 1)
 
 ;; Tramp and remote access
 (setq tramp-default-method "ssh")
@@ -240,10 +235,10 @@
 ;; Source: https://emacs.stackexchange.com/a/22094
 (defun next-line-non-empty-column (arg)
   "Find next line, on the same column, skipping those that would
-end up leaving point on a space or newline character."
+end up leaving point on whitespace."
   (interactive "p")
   (let* ((hpos (- (point) (point-at-bol)))
-         (re (format "^.\\{%s\\}[^\n ]" hpos)))
+         (re (format "^.\\{%s\\}[^[:space:]\n]" hpos)))
     (cond ((> arg 0)
            (forward-char 1) ; don't match current position (can only happen at column 0)
            (re-search-forward re))
@@ -362,6 +357,21 @@ end up leaving point on a space or newline character."
 (eval-after-load 'LaTeX-mode
   (local-set-key (kbd "C-c C-j") 'compile-latex))
 
+;; Increment a hex number written as a string, optionally prefixed by 0x, and
+;; return the result as a string prefixed by 0x.
+(defun hex-increment (str incr)
+  (format "0x%X"
+          (+ incr (string-to-number (string-remove-prefix "0x" str) 16))))
+
+(defvar hex-update-incr 4 "Increment for updating hex values in a buffer")
+(defvar hex-update-next 0 "Next value for updating hex values in a buffer")
+(defun hex-update ()
+  (interactive)
+  (re-search-forward "0x[[:xdigit:]]+")
+  (replace-match (format "0x%X" hex-update-next))
+  (setq hex-update-next (+ hex-update-next hex-update-incr)))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
 ;;         Package config        ;;
@@ -375,6 +385,59 @@ end up leaving point on a space or newline character."
 (global-set-key (kbd "C-k") 'avy-goto-word-or-subword-1)
 (global-set-key (kbd "M-n") 'next-buffer)
 (global-set-key (kbd "M-p") 'previous-buffer)
+(global-set-key (kbd "M-b") 'ido-switch-buffer)
+
+;; Use smartparens to navigate lists when enabled, otherwise define versions of
+;; backward- and forward-list functions that are allowed to break out of
+;; containing expressions
+(defun my-backward-list ()
+  (interactive)
+  (if (bound-and-true-p smartparens-mode)
+      (while (string-empty-p (plist-get (sp-backward-sexp) :op)))
+      (condition-case nil (backward-list)
+        (error (backward-up-list)))))
+
+(defun my-forward-list ()
+  (interactive)
+  (if (bound-and-true-p smartparens-mode)
+      (while (string-empty-p (plist-get (sp-forward-sexp) :cl)))
+      (condition-case nil (forward-list)
+        (error (up-list)))))
+
+(defun sp-remove-pair (open)
+  (sp-pair open nil :actions :rem))
+(defun sp-remove-all-pairs ()
+  (dolist (pair sp-pair-list)
+    (sp-remove-pair (car pair))))
+;; TODO annoying how it works in strings, fix that
+;; Should break out of strings, not treat strings as its own context
+
+(defun my-verilog-hook ()
+  ;; Luxuriate in the new 100-character lines
+  ;; ...except that's just too much for comments. A healthy 90?
+  (setq fill-column 90)
+
+  (smartparens-mode)
+  (sp-remove-pair "'")
+  (sp-remove-pair "`")
+  (sp-local-pair 'verilog-mode "begin" "end")
+  (sp-local-pair 'verilog-mode "case" "endcase")
+  (sp-local-pair 'verilog-mode "module" "endmodule")
+  (sp-local-pair 'verilog-mode "function" "endfunction")
+  (sp-local-pair 'verilog-mode "task" "endtask")
+  (show-smartparens-mode)
+  )
+(add-hook 'verilog-mode-hook 'my-verilog-hook)
+
+;; Window management
+(global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
+
+;; Workgroups
+;; Use ido mode for workgroup switcher
+(ido-ubiquitous-mode 1)
+(setq ido-cr+-allow-list '(wg-switch-to-workgroup))
+;; TODO workgroups switcher key bindings
+(require 'workgroups2)
 
 ;; Revert buffer shortcut
 (global-set-key (kbd "H-r") 'revert-buffer)
@@ -796,12 +859,16 @@ Only for use with `advice-add'."
 (autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
 (add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\(.erb\\)?\\'" . verilog-mode))
 
+;; SystemRDL mode
+(autoload 'systemrdl-mode "systemrdl-mode" "SystemRDL mode" t )
+(add-to-list 'auto-mode-alist '("\\.rdl\\'" . systemrdl-mode))
+
 ;; Load templates
 (auto-insert-mode)
 (setq auto-insert-query nil)
 (setq auto-insert-directory "~/home/emacs/templates/")
-(define-auto-insert "\\.sv" "template.sv")
-(define-auto-insert "\\.vhd" "template.vhd")
+(define-auto-insert "\\.sv$" "template.sv")
+(define-auto-insert "\\.vhd$" "template.vhd")
 
 ;; Multi-term mode
 ;; See: https://github.com/rlister/emacs.d/blob/master/lisp/multi-term-cfg.el
@@ -835,13 +902,32 @@ Only for use with `advice-add'."
   (interactive)
   (term-send-raw-string (string (read-event))))
 
+(defun my-term-char-mode ()
+  "Clone of term-char-mode but without sending anything to the terminal."
+  (interactive)
+  ;; FIXME: Emit message? Cfr ilisp-raw-message
+  (when (term-in-line-mode)
+    (setq term-old-mode-map (current-local-map))
+    (use-local-map term-raw-map)
+    (easy-menu-add term-terminal-menu)
+    (easy-menu-add term-signals-menu)
+
+    ;; Don't allow changes to the buffer or to point which are not
+    ;; caused by the process filter.
+    (when term-char-mode-buffer-read-only
+      (setq buffer-read-only t))
+    (add-hook 'pre-command-hook #'term-set-goto-process-mark nil t)
+    (add-hook 'post-command-hook #'term-goto-process-mark-maybe nil t)
+
+    (term-update-mode-line)))
+;; TODO can use term-in-line-mode instead of term-current-mode
 (defun term-toggle-mode ()
   "Switch terminal between line and char mode."
   (interactive)
   (if (and (boundp 'term-current-mode) (eq term-current-mode 'line))
       (progn
         (setq-local term-current-mode 'char)
-        (term-char-mode))
+        (my-term-char-mode))
       (progn
         (setq-local term-current-mode 'line)
         (term-line-mode))))
@@ -853,6 +939,7 @@ Only for use with `advice-add'."
             ; Disable common mappings so we can rebind a couple things
             (common-keys-minor-mode -1)
             ;; Bindings in line mode
+            ;; TODO should do this in eval-after-load instead of a hook
             (define-key term-mode-map (kbd "M-m") 'term-toggle-mode)
             (define-key term-mode-map (kbd "M-SPC") 'set-mark-command)
             (define-key term-mode-map (kbd "M-n") 'next-buffer)
@@ -862,6 +949,16 @@ Only for use with `advice-add'."
             (define-key term-raw-map (kbd "M-y") 'term-paste)
             (define-key term-raw-map (kbd "C-c") 'term-send-raw-control)
             (define-key term-raw-map (kbd "M-.") 'term-tcsh-history)))
+
+;; Some modes want to redefine M-p and M-n. Some modes are wrong.
+(add-hook 'markdown-mode-hook
+          '(lambda ()
+             (define-key markdown-mode-map (kbd "M-p") 'previous-buffer)
+             (define-key markdown-mode-map (kbd "M-n") 'next-buffer)))
+(add-hook 'makefile-mode-hook
+          '(lambda ()
+             (define-key makefile-mode-map (kbd "M-p") 'previous-buffer)
+             (define-key makefile-mode-map (kbd "M-n") 'next-buffer)))
 
 ;; Faster M-x command
 (defalias 'mrem 'multi-term-remote)
@@ -884,7 +981,3 @@ Only for use with `advice-add'."
   (local-set-key (kbd "RET") 'indent-and-newline))
 
 (add-hook 'sml-mode-hook 'my-sml-mode-hook)
-
-;; Disable graphical scroll bar and toolbar
-(toggle-scroll-bar -1)
-(tool-bar-mode -1)

@@ -5581,6 +5581,10 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
                        (progn (setq par 1)
                               (throw 'nesting 'block)))
 
+                   ;; If the line starts with ), don't indent (my hack)
+                   (if (= (save-excursion (back-to-indentation) (following-char)) ?\))
+                       (throw 'nesting 'defun))
+
                    ;; See if we are continuing a previous line
                    (while t
                      ;; trap out if we crawl off the top of the buffer
@@ -5590,6 +5594,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
                               (or (not (verilog-in-coverage-p))
                                   (looking-at verilog-in-constraint-re) ))  ; may still get hosed if concat in constraint
                          (let ((sp (point)))
+                           ;; if the previous line was also a continued line
                            (if (and
                                 (not (looking-at verilog-complete-reg))
                                 (verilog-continued-line-1 lim))

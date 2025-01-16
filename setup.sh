@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# TODO:
+# Should check for common annoyances in default bashrc (l, la, dircolors, maybe
+# hist size) and let you comment them
+
 HOME_DIR=~/home
 if [ ! -d $HOME_DIR ]
 then
@@ -80,8 +84,41 @@ function setup_file {
     fi
 }
 
+function setup_link {
+    local SOURCE=$1 # Without $HOME_DIR prefix
+    local DEST=$2   # Full path+filename, can start with ~/
+
+    # If ~/$DEST exists, is a regular file, and is non-empty
+    if [ -f $DEST -a -s $DEST ]
+    then
+        >&2 echo "Replace existing $DEST?"
+        select c in "Replace" "Show" "Skip"; do
+            case $c in
+                Replace )
+                    mv -i $DEST $DEST.orig
+                    ln -s $HOME_DIR/$SOURCE $DEST
+                    break;;
+
+                Show )
+                    less $DEST
+                    # No break, so the select will loop and ask for another input
+                    ;;
+
+                Skip )
+                    >&2 echo "Skipping $SOURCE setup"
+                    break;;
+            esac
+        done
+    else
+        >&2 echo "Linking $SOURCE to $DEST"
+        ln -s $HOME_DIR/$SOURCE $DEST
+    fi
+}
+
 setup_file .bashrc "source ~/.bashrc.orig"
 setup_file .emacs "(load-file \"~/.emacs.orig\")"
+
+setup_link ipython.py ~/.ipython/profile_default/startup/ipython.py
 
 mkdir -p $STATE_DIR
 echo 1 > $STATE_DIR/setup
