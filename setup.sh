@@ -118,6 +118,7 @@ function setup_link {
 setup_file .bashrc "source ~/.bashrc.orig"
 setup_file .emacs "(load-file \"~/.emacs.orig\")"
 
+mkdir -p ~/.ipython/profile_default/startup/
 setup_link ipython.py ~/.ipython/profile_default/startup/ipython.py
 
 mkdir -p $STATE_DIR
